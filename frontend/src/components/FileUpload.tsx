@@ -1,111 +1,115 @@
-
-import React, { useState} from "react";
-
-import type { DragEvent, ChangeEvent } from "react";
+import React, { useState } from "react";
 
 interface Props {
-  onSessionId: (id: string) => void;
+  onGraphData: (graph: any) => void;
 }
 
-const FileUpload: React.FC<Props> = ({ onSessionId }) => {
+const FileUpload: React.FC<Props> = ({ onGraphData }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    setFiles(droppedFiles);
+    const dropped = Array.from(e.dataTransfer.files);
+    setFiles(dropped);
   };
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFiles(Array.from(e.target.files));
     }
   };
 
-  const uploadFiles = async () => {
+  const clearFiles = () => {
+    setFiles([]);
+    setError("");
+  };
+
+  const generateGraph = async () => {
     if (files.length === 0) return;
+    setLoading(true);
+    setError("");
 
-    setUploading(true);
+    try {
+      // 1. Upload files
+      const form = new FormData();
+      files.forEach((f) => form.append("files", f));
 
-    const formData = new FormData();
-    files.forEach((f) => formData.append("files", f));
+      const uploadRes = await fetch("http://localhost:8080/upload", {
+        method: "POST",
+        body: form,
+      });
 
-    const response = await fetch("http://localhost:8080/upload", {
-      method: "POST",
-      body: formData,
-    });
+      if (!uploadRes.ok) throw new Error("Upload failed");
 
-    const data = await response.json();
-    setUploading(false);
+      const uploadData = await uploadRes.json();
+      const sessionId = uploadData.session_id;
 
-    if (data.session_id) {
-      onSessionId(data.session_id);
+      // 2. Fetch graph
+      const graphRes = await fetch(
+        `http://localhost:8080/graph?session_id=${sessionId}`
+      );
+
+      if (!graphRes.ok) throw new Error("Graph fetch failed");
+
+      const graph = await graphRes.json();
+      onGraphData(graph);
+    } catch (err: any) {
+      setError(err.message || "Unexpected error");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="upload-container" style={{ maxWidth: 500, margin: "0 auto" }}>
-      {/* Drop Area */}
+    <div>
       <div
         onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
         style={{
-          border: "2px dashed #888",
-          padding: "40px",
-          textAlign: "center",
+          border: "2px dashed #666",
+          padding: 30,
           borderRadius: 8,
-          background: isDragging ? "#eee" : "transparent",
-          cursor: "pointer",
+          textAlign: "center",
+          background: isDragging ? "#eee" : "#fafafa",
+          marginBottom: 20,
         }}
       >
-        <p>Drag & drop Terraform files here</p>
-        <p>or click below to select</p>
+        <p>Drop Terraform files (.tf / .tf.json) here</p>
 
         <input
           type="file"
           multiple
           accept=".tf,.tf.json"
           onChange={handleFileInput}
-          style={{ marginTop: "10px" }}
         />
       </div>
 
-      {/* Show selected files */}
       {files.length > 0 && (
-        <ul style={{ marginTop: 20 }}>
-          {files.map((f) => (
-            <li key={f.name}>{f.name}</li>
-          ))}
-        </ul>
+        <div style={{ marginBottom: 20 }}>
+          <strong>Selected files:</strong>
+          <ul>
+            {files.map((f) => (
+              <li key={f.name}>{f.name}</li>
+            ))}
+          </ul>
+
+          <button onClick={clearFiles}>Clear</button>
+        </div>
       )}
 
-      {/* Upload button */}
-      <button
-        style={{
-          marginTop: 20,
-          padding: "10px 20px",
-          fontSize: "1rem",
-          cursor: "pointer",
-        }}
-        onClick={uploadFiles}
-        disabled={uploading}
-      >
-        {uploading ? "Uploading..." : "Upload"}
+      <button onClick={generateGraph} disabled={loading || files.length === 0}>
+        {loading ? "Processing..." : "Generate Graph"}
       </button>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 };
