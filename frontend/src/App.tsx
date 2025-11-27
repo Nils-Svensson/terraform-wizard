@@ -1,28 +1,37 @@
 import { useState } from "react";
 import "./App.css";
 import FileUpload from "./components/FileUpload";
+import GraphWindow from "./components/GraphWindow";
 
 function App() {
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [graphData, setGraphData] = useState<any | null>(null);
 
   return (
     <div style={{ padding: 40 }}>
       <h1>Terraform Wizard</h1>
 
-      {/* Upload UI */}
-      <FileUpload onGraphData={(graph) => setGraphData(graph)} />
+      <FileUpload
+        sessionId={sessionId}
+        onSessionId={setSessionId}
+        onGraphData={setGraphData}
+      />
 
-      {/* Display the graph JSON (temporary until we add visualization) */}
-      {graphData && (
+      {sessionId && (
         <div style={{ marginTop: 30 }}>
-          <h2>Graph Data</h2>
-          <pre style={{ background: "#eee", padding: 20, borderRadius: 8 }}>
-            {JSON.stringify(graphData, null, 2)}
-          </pre>
+          <h2>Session Created</h2>
+          <p><strong>ID:</strong> {sessionId}</p>
         </div>
+      )}
+
+      {graphData && (
+        <GraphWindow graphData={graphData} />
       )}
     </div>
   );
 }
 
 export default App;
+
+
+

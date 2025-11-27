@@ -1,117 +1,145 @@
-import React, { useState } from "react";
+import { useState, useCallback } from "react";
+import { useDropzone } from "react-dropzone";
 
 interface Props {
+  sessionId: string | null;
+  onSessionId: (id: string) => void;
   onGraphData: (graph: any) => void;
 }
 
-const FileUpload: React.FC<Props> = ({ onGraphData }) => {
+export default function FileUpload({ sessionId, onSessionId, onGraphData }: Props) {
   const [files, setFiles] = useState<File[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const dropped = Array.from(e.dataTransfer.files);
-    setFiles(dropped);
-  };
+  // Handle dropped or selected files
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    setFiles((prev) => [...prev, ...acceptedFiles]);
+  }, []);
 
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles(Array.from(e.target.files));
-    }
-  };
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { "text/plain": [".tf"] },
+  });
 
-  const clearFiles = () => {
-    setFiles([]);
-    setError("");
-  };
-
-  const generateGraph = async () => {
+  async function handleGenerateGraph() {
     if (files.length === 0) return;
+
     setLoading(true);
-    setError("");
 
     try {
-      // 1. Upload files
+      // --- 1) Upload files (reusing existing session if available) ---
       const form = new FormData();
+
+      if (sessionId) {
+        form.append("session_id", sessionId);
+      }
+
       files.forEach((f) => form.append("files", f));
 
-      const uploadRes = await fetch("http://localhost:8080/upload", {
+      const uploadRes = await fetch('http://localhost:8080/upload', {
         method: "POST",
         body: form,
       });
 
       if (!uploadRes.ok) throw new Error("Upload failed");
 
-      const uploadData = await uploadRes.json();
-      const sessionId = uploadData.session_id;
+      const uploadJson = await uploadRes.json();
 
-      // 2. Fetch graph
+      if (uploadJson.session_id) {
+        onSessionId(uploadJson.session_id);
+      }
+
+      const activeSession = uploadJson.session_id;
+
+      // --- 2) Request graph ---
       const graphRes = await fetch(
-        `http://localhost:8080/graph?session_id=${sessionId}`
+        `http://localhost:8080/graph?session_id=${activeSession}`
       );
 
-      if (!graphRes.ok) throw new Error("Graph fetch failed");
+      if (!graphRes.ok) throw new Error("Failed to fetch graph");
 
-      const graph = await graphRes.json();
-      onGraphData(graph);
-    } catch (err: any) {
-      setError(err.message || "Unexpected error");
+      const graphJson = await graphRes.json();
+      onGraphData(graphJson);
+
+    } catch (err) {
+      console.error(err);
+      alert("Error: " + (err as Error).message);
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  function handleClear() {
+    setFiles([]);
+  }
 
   return (
     <div>
+      {/* Dropzone UI */}
       <div
-        onDrop={handleDrop}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
+        {...getRootProps()}
         style={{
-          border: "2px dashed #666",
           padding: 30,
-          borderRadius: 8,
-          textAlign: "center",
-          background: isDragging ? "#eee" : "#fafafa",
+          border: "2px dashed #888",
+          borderRadius: 10,
+          background: isDragActive ? "#1e2530" : "#151a22",
+          cursor: "pointer",
           marginBottom: 20,
+          color: "#e2e8f0"
         }}
       >
-        <p>Drop Terraform files (.tf / .tf.json) here</p>
+        <input {...getInputProps()} />
 
-        <input
-          type="file"
-          multiple
-          accept=".tf,.tf.json"
-          onChange={handleFileInput}
-        />
+        {isDragActive ? (
+          <p>Drop Terraform files here...</p>
+        ) : (
+          <p>Drag & drop Terraform (.tf) files, or click to select</p>
+        )}
       </div>
 
+      {/* Selected Files List */}
       {files.length > 0 && (
         <div style={{ marginBottom: 20 }}>
-          <strong>Selected files:</strong>
+          <strong>Files:</strong>
           <ul>
-            {files.map((f) => (
-              <li key={f.name}>{f.name}</li>
+            {files.map((f, i) => (
+              <li key={i}>{f.name}</li>
             ))}
           </ul>
 
-          <button onClick={clearFiles}>Clear</button>
+          <button
+            onClick={handleClear}
+            style={{ 
+              marginTop: 10,
+              padding: "6px 10px",
+              background: "#4caf50",
+              color: "white",
+              border: "none",
+              borderRadius: 6,
+              cursor: "pointer",
+              opacity: loading ? 0.7 : 1, }}
+          >
+            Clear Files
+          </button>
         </div>
       )}
 
-      <button onClick={generateGraph} disabled={loading || files.length === 0}>
+      {/* Generate Graph Button */}
+      <button
+        onClick={handleGenerateGraph}
+        disabled={loading || files.length === 0}
+        style={{
+          padding: "10px 20px",
+          background: "#4caf50",
+          color: "white",
+          border: "none",
+          borderRadius: 6,
+          cursor: "pointer",
+          opacity: loading ? 0.7 : 1,
+        }}
+      >
         {loading ? "Processing..." : "Generate Graph"}
       </button>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
-};
-
-export default FileUpload;
+}
