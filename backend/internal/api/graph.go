@@ -2,9 +2,11 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
-	"terraform-wizard/backend/internal/graph"
-	"terraform-wizard/backend/internal/storage"
+
+	"github.com/Nils-Svensson/terraform-wizard/backend/internal/graph"
+	"github.com/Nils-Svensson/terraform-wizard/backend/internal/storage"
 )
 
 type GraphHandler struct {
@@ -16,16 +18,28 @@ func NewGraphHandler(builder *graph.Builder, storage *storage.Storage) *GraphHan
 	return &GraphHandler{builder: builder, storage: storage}
 }
 
-func (h *GraphHandler) BuildGraph(w http.ResponseWriter, r http.Request) {
-	sessionID := r.FormValue("session_id")
-	resources, ok := h.storage.Get(sessionID)
-	if !ok {
-		http.Error(w, "no resources found", http.StatusBadRequest)
+func (h *GraphHandler) BuildGraph(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	sessionID := r.URL.Query().Get("session_id")
+
+	fmt.Println("Graph requested for session:", sessionID)
+
+	if sessionID == "" {
+		http.Error(w, "missing session_id", http.StatusBadRequest)
 		return
 	}
 
-	g := h.builder.Build(resources)
+	resources, ok := h.storage.Get(sessionID)
+	if !ok {
+		http.Error(w, "no resources found for session", http.StatusNotFound)
+		return
+	}
 
-	json.NewEncoder(w).Encode(g)
+	graph := h.builder.Build(resources)
 
+	if err := json.NewEncoder(w).Encode(graph); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

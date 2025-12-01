@@ -1,6 +1,6 @@
 package graph
 
-import "terraform-wizard/backend/pkg/model"
+import "github.com/Nils-Svensson/terraform-wizard/backend/pkg/model"
 
 type Builder struct{}
 

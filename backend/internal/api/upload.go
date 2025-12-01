@@ -2,11 +2,13 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"path"
 	"strings"
 
-	"terraform-wizard/backend/internal/ingest"
-	"terraform-wizard/backend/internal/storage"
+	"github.com/Nils-Svensson/terraform-wizard/backend/internal/ingest"
+	"github.com/Nils-Svensson/terraform-wizard/backend/internal/storage"
 
 	"github.com/google/uuid"
 )
@@ -30,10 +32,29 @@ func (h *UploadHandler) UploadTerraform(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	fmt.Println("Multipart Form Values:", r.MultipartForm.Value)
+	fmt.Println("Query session_id:", r.URL.Query().Get("session_id"))
+	fmt.Println("FormValue session_id:", r.FormValue("session_id"))
+
 	// Optional session ID from query parameters
 	sessionID := r.URL.Query().Get("session_id")
+
+	msg := fmt.Sprintf("sessionID: %s", sessionID)
+	fmt.Println(msg)
+
+	// If empty, try form field (for POST)
+	if sessionID == "" {
+		if val := r.FormValue("session_id"); val != "" {
+			sessionID = val
+		}
+	}
+
 	if sessionID == "" || !isValidUUID(sessionID) {
 		sessionID = h.storage.NewSession()
+		fmt.Println("SessionID: ", sessionID)
+	} else {
+		// IMPORTANT: clear previous data
+		h.storage.Delete(sessionID)
 	}
 
 	// Validate file field
@@ -45,11 +66,21 @@ func (h *UploadHandler) UploadTerraform(w http.ResponseWriter, r *http.Request) 
 
 	// Validate extensions
 	for _, f := range files {
-		filename := strings.ToLower(f.Filename)
-		if !strings.HasSuffix(filename, ".tf") && !strings.HasSuffix(filename, ".tf.json") {
+		fmt.Printf("Received file: '%s'\n", f.Filename)
+
+		filename := strings.ToLower(path.Base(f.Filename))
+
+		// Remove macOS duplicate suffixes, like "(kopia)" or "(copy)"
+		filename = strings.Split(filename, " (")[0]
+		filename = strings.TrimSpace(filename)
+
+		if strings.HasSuffix(filename, ".tf") || strings.HasSuffix(filename, ".tf.json") {
+			// accept
+		} else {
 			http.Error(w, "invalid file format: "+filename, http.StatusBadRequest)
 			return
 		}
+
 	}
 
 	// Parse files → resources

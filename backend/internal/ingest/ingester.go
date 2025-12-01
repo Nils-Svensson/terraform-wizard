@@ -1,11 +1,12 @@
 package ingest
 
 import (
+	"fmt"
 	"io"
 	"mime/multipart"
 
-	"terraform-wizard/backend/internal/parser"
-	"terraform-wizard/backend/pkg/model"
+	"github.com/Nils-Svensson/terraform-wizard/backend/internal/parser"
+	"github.com/Nils-Svensson/terraform-wizard/backend/pkg/model"
 )
 
 type Service struct {
@@ -21,6 +22,7 @@ func (s *Service) ProcessFiles(files []*multipart.FileHeader) ([]*model.Resource
 
 	for _, f := range files {
 		file, err := f.Open()
+		fmt.Println("file name: ", file)
 		if err != nil {
 			return nil, err
 		}
@@ -31,7 +33,7 @@ func (s *Service) ProcessFiles(files []*multipart.FileHeader) ([]*model.Resource
 			return nil, err
 		}
 
-		resources, err := s.parser.Parse(content)
+		resources, err := s.parser.Parse(content, f.Filename)
 		if err != nil {
 			return nil, err
 		}
