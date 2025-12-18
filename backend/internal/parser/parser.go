@@ -11,17 +11,16 @@ import (
 )
 
 type Service struct {
-	parser *hclparse.Parser
 }
 
 func New() *Service {
-	return &Service{
-		parser: hclparse.NewParser(),
-	}
+
+	return &Service{}
 }
 
 func (s *Service) Parse(content []byte, filname string) ([]*model.Resource, error) {
-	file, diag := s.parser.ParseHCL(content, filname)
+	parser := hclparse.NewParser()
+	file, diag := parser.ParseHCL(content, filname)
 	if diag.HasErrors() {
 		return nil, fmt.Errorf("failed to parse HCL: %s", diag.Error())
 	}

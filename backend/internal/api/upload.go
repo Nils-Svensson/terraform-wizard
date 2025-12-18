@@ -32,15 +32,8 @@ func (h *UploadHandler) UploadTerraform(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	fmt.Println("Multipart Form Values:", r.MultipartForm.Value)
-	fmt.Println("Query session_id:", r.URL.Query().Get("session_id"))
-	fmt.Println("FormValue session_id:", r.FormValue("session_id"))
-
 	// Optional session ID from query parameters
 	sessionID := r.URL.Query().Get("session_id")
-
-	msg := fmt.Sprintf("sessionID: %s", sessionID)
-	fmt.Println(msg)
 
 	// If empty, try form field (for POST)
 	if sessionID == "" {

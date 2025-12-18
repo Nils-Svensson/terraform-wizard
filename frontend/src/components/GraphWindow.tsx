@@ -1,36 +1,78 @@
+import { useEffect, useState, useCallback } from "react";
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  applyNodeChanges,
+  applyEdgeChanges,
+  type Node,
+  type Edge,
+  type NodeChange,
+  type EdgeChange
+} from "@xyflow/react";
 
-interface Props {
-  graphData: any;
+import "@xyflow/react/dist/style.css";
+
+interface BackendNode {
+  id: string;
+  type: string;
+  name: string;
 }
 
-export default function GraphWindow({ graphData }: Props) {
-  if (!graphData) return null;
+interface BackendEdge {
+  from: string;
+  to: string;
+}
+
+interface BackendGraph {
+  nodes: BackendNode[];
+  edges: BackendEdge[];
+}
+
+export default function GraphWindow({ graphData }: { graphData: BackendGraph | null }) {
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+
+  // Convert backend format → XYFlow nodes/edges
+  useEffect(() => {
+    if (!graphData) return;
+
+    const rfNodes: Node[] = graphData.nodes.map((n, i) => ({
+      id: n.id,
+      position: { x: (i % 4) * 250, y: Math.floor(i / 4) * 150 },
+      data: { label: `${n.type}.${n.name}` }
+    }));
+
+    const rfEdges: Edge[] = graphData.edges.map((e, i) => ({
+      id: `edge-${i}`,
+      source: e.from,
+      target: e.to
+    }));
+
+    setNodes(rfNodes);
+    setEdges(rfEdges);
+  }, [graphData]);
+
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    setNodes((nds) => applyNodeChanges(changes, nds));
+  }, []);
+
+  const onEdgesChange = useCallback((changes: EdgeChange[]) => {
+    setEdges((eds) => applyEdgeChanges(changes, eds));
+  }, []);
 
   return (
-    <div
-      style={{
-        marginTop: 40,
-        padding: 20,
-        borderRadius: 12,
-        background: "#11151b",
-        boxShadow: "0 0 20px rgba(0, 0, 0, 0.5)",
-      }}
-    >
-      <h2 style={{ marginBottom: 10 }}>Graph</h2>
-
-      <div
-        style={{
-          height: "500px",
-          borderRadius: 8,
-          background: "#0d1117",
-          border: "1px solid #2d3748",
-          padding: 10,
-          overflow: "auto",
-          color: "#cbd5e1",
-        }}
+    <div style={{ width: "100%", height: "100%" }}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        fitView
       >
-        <pre>{JSON.stringify(graphData, null, 2)}</pre>
-      </div>
+        <Background />
+        <Controls />
+      </ReactFlow>
     </div>
   );
 }

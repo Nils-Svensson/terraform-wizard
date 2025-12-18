@@ -1,6 +1,10 @@
 package graph
 
-import "github.com/Nils-Svensson/terraform-wizard/backend/pkg/model"
+import (
+	"fmt"
+
+	"github.com/Nils-Svensson/terraform-wizard/backend/pkg/model"
+)
 
 type Builder struct{}
 
@@ -9,6 +13,12 @@ func NewBuilder() *Builder {
 }
 
 func (b *Builder) Build(resources []*model.Resource) *Graph {
+
+	fmt.Println("BUILD INPUT COUNT:", len(resources))
+	for _, r := range resources {
+		fmt.Println("RESOURCE:", r.ID, r.Type, r.Name)
+	}
+
 	g := NewGraph()
 
 	// 1. Add nodes

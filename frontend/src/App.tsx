@@ -11,36 +11,51 @@ function App() {
   return (
     <div
       style={{
-        padding: 40,
-        minHeight: "100vh",
-        background: "#0f172a",      // Deep blue/black
+        display: "flex",
+        height: "100vh",
+        width: "100vw",
+        background: "#0f172a",
         color: "white",
+        overflow: "hidden",
+        flexDirection: "row",
       }}
     >
-      <h1 style={{ marginBottom: 30 }}>Terraform Wizard</h1>
+      {/* LEFT SIDEBAR */}
+      <div
+        style={{
+          width: "320px",
+          padding: "20px",
+          borderRight: "1px solid #334155",
+          overflowY: "auto",
+        }}
+      >
+        <h1 style={{ marginBottom: 20 }}>Terraform Wizard</h1>
 
-      <FileUpload
-        sessionId={sessionId}
-        onSessionId={setSessionId}
-        onGraphData={setGraphData}
-      />
+        <FileUpload
+          sessionId={sessionId}
+          onSessionId={setSessionId}
+          onGraphData={setGraphData}
+        />
 
-      {/* Show session info if available */}
-      {sessionId && (
-        <div style={{ marginTop: 30 }}>
-          <h2>Session Created</h2>
-          <p>
-            <strong>ID:</strong> {sessionId}
-          </p>
-        </div>
-      )}
+        {sessionId && (
+          <div style={{ marginTop: 30 }}>
+            <h2>Session Created</h2>
+            <p><strong>ID:</strong> {sessionId}</p>
+          </div>
+        )}
+      </div>
 
-      {/* Only render GraphWindow when graphData exists */}
-      {graphData && (
-        <div style={{ marginTop: 40 }}>
-          <GraphWindow graphData={graphData} />
-        </div>
-      )}
+      {/* GRAPH PANEL */}
+      <div
+        style={{
+          flex: 1,
+          padding: "10px",
+          overflow: "hidden",
+          display: "flex",
+        }}
+      >
+        <GraphWindow graphData={graphData} />
+      </div>
     </div>
   );
 }
