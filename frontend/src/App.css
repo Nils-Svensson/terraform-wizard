@@ -21,3 +21,24 @@ body {
   color: white;
   overflow: hidden; /* CRITICAL — prevents layout break */
 }
+
+/* XYFlow Controls – force dark theme */
+.react-flow__controls {
+  background: #0f172a !important;
+  border: 1px solid #334155 !important;
+  border-radius: 8px;
+}
+
+.react-flow__controls-button {
+  background: #1e293b !important;
+  color: #e5e7eb !important;
+  border: 1px solid #334155 !important;
+}
+
+.react-flow__controls-button:hover {
+  background: #334155 !important;
+}
+
+.react-flow__controls-button svg {
+  color: #e5e7eb !important; /* THIS is the key */
+}

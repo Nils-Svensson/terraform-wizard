@@ -11,12 +11,20 @@ import {
   type EdgeChange
 } from "@xyflow/react";
 
+import TerraformNode from "./TerraformNode";
+
+const nodeTypes = {
+  terraform: TerraformNode,
+};
+
+
 import "@xyflow/react/dist/style.css";
 
 interface BackendNode {
   id: string;
   type: string;
   name: string;
+  count: Int16Array;
 }
 
 interface BackendEdge {
@@ -37,11 +45,16 @@ export default function GraphWindow({ graphData }: { graphData: BackendGraph | n
   useEffect(() => {
     if (!graphData) return;
 
-    const rfNodes: Node[] = graphData.nodes.map((n, i) => ({
+    const newNodes = graphData.nodes.map((n, i) => ({
       id: n.id,
+      type: "terraform",
       position: { x: (i % 4) * 250, y: Math.floor(i / 4) * 150 },
-      data: { label: `${n.type}.${n.name}` }
+      data: {
+        label: `${n.type}.${n.name}`,
+        count: n.count,
+      },
     }));
+    
 
     const rfEdges: Edge[] = graphData.edges.map((e, i) => ({
       id: `edge-${i}`,
@@ -49,7 +62,7 @@ export default function GraphWindow({ graphData }: { graphData: BackendGraph | n
       target: e.to
     }));
 
-    setNodes(rfNodes);
+    setNodes(newNodes);
     setEdges(rfEdges);
   }, [graphData]);
 
@@ -66,6 +79,7 @@ export default function GraphWindow({ graphData }: { graphData: BackendGraph | n
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         fitView
