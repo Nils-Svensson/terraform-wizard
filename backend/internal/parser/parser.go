@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
 )
 
@@ -44,15 +45,21 @@ func (s *Service) Parse(content []byte, filname string) ([]*model.Resource, erro
 
 		resourceType := block.Labels[0]
 		resourceName := block.Labels[1]
+		provider := extractProvider(resourceType)
 
 		r := &model.Resource{
-			ID:          fmt.Sprintf("%s.%s", resourceType, resourceName),
-			Type:        resourceType,
-			Name:        resourceName,
-			Provider:    extractProvider(resourceType),
-			Attributes:  map[string]any{},
-			DependsOn:   []string{},
-			Expressions: map[string]hcl.Expression{},
+			ID:            fmt.Sprintf("%s.%s", resourceType, resourceName),
+			Type:          resourceType,
+			Name:          resourceName,
+			Provider:      provider,
+			Region:        findRegionInProviders(body), //This is probably wrong.
+			Attributes:    map[string]any{},
+			DependsOn:     []string{},
+			Expressions:   map[string]hcl.Expression{},
+			DeclaredCount: nil,
+			ForEach:       false,
+			
+		
 		}
 
 		// Extract attributes
@@ -74,6 +81,37 @@ func (s *Service) Parse(content []byte, filname string) ([]*model.Resource, erro
 			}
 		}
 
+		/*if countAttr, exists := block.Body.Attributes["count"]; exists {
+			val, diag := countAttr.Expr.Value(nil)
+			if !diag.HasErrors() && val.Type().IsPrimitiveType() {
+				var out interface{}
+				if err := gocty.FromCtyValue(val, &out); err == nil {
+					if intVal, ok := out.(int); ok {
+						r.DeclaredCount = &intVal
+					}
+				}
+			}
+		}*/
+
+		if countAttr, exists := block.Body.Attributes["count"]; exists {
+			val, diag := countAttr.Expr.Value(nil)
+
+			if !diag.HasErrors() && val.IsKnown() {
+				switch {
+				case val.Type().Equals(cty.Number):
+					i, _ := val.AsBigFloat().Int64()
+					ii := int(i)
+					r.DeclaredCount = &ii
+				}
+			} else {
+				// count exists but is dynamic
+				r.DeclaredCount = nil
+			}
+		}
+
+		if _, exists := block.Body.Attributes["for_each"]; exists {
+			r.ForEach = true
+		}
 		// Fallback: detect region from provider blocks
 		if r.Region == "" {
 			r.Region = findRegionInProviders(body)

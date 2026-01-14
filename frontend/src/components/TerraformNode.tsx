@@ -1,29 +1,125 @@
-import { Handle, Position } from "@xyflow/react";
 
-export default function TerraformNode({ data }: any) {
+// TerraformNode contains code responsible for the visual representation of a Terraform resource node in the graph.
+import { memo } from "react";
+import { Handle, Position, type NodeProps } from "@xyflow/react";
+import type { TerraformNodeData } from "./TerraformNodeData";
+
+// =====================
+// TerraformNode Component  
+function TerraformNode(props: NodeProps) {
+  const data = props.data as unknown as TerraformNodeData;
+
+  const {
+    resourceType,
+    displayName,
+    provider,
+    region,
+    attributes,
+    expanded,
+    instanceCount,
+    occurrenceCount,
+    forEach,
+    
+  } = data;
+
+  const HIGHLIGHT_STYLES = {
+    selected: {
+      glow: "rgba(34,197,94,0.8)", // green
+      border: "#22c55e",
+      opacity: 1,
+    },
+    connected: {
+      glow: "rgba(239,68,68,0.7)", // red
+      border: "#ef4444",
+      opacity: 1,
+    },
+    dimmed: {
+      glow: "rgba(163, 167, 191, 0.39)",
+      border: "#334155",
+      opacity: 0.35,
+    },
+  };
+
+  const highlight = data.highlightState|| "dimmed";
+  const style = HIGHLIGHT_STYLES[highlight];
+  
+
+  const depth = Math.min(occurrenceCount ?? 1, 5);
+
+  const depthShadow = Array.from({ length: depth })
+    .map(
+      (_, i) =>
+        `0 ${i * 2}px ${6 + i * 3} ${style.glow}`
+    )
+  .join(",");
+
+  const borderWidth = Math.min(depth, 3);
+
   return (
     <div
       style={{
-        background: "#1e293b",
+        background: "#020617",
+        border: `2px solid ${style.border}`,
+        borderRadius: 10,
+        padding: "10px 12px",
+        minWidth: 180,
         color: "#e5e7eb",
-        border: "1px solid #334155",
-        borderRadius: 8,
-        padding: "8px 12px",
         fontSize: 12,
-        minWidth: 120,
-        textAlign: "center",
+        boxShadow: depthShadow, 
+        borderWidth: `${borderWidth}px`,
+        
       }}
     >
-      <strong>{data.label}</strong>
+      {/* Handles */}
+      <Handle type="target" position={Position.Left} />
+      <Handle type="source" position={Position.Right} />
 
-      {data.count > 1 && (
-        <div style={{ marginTop: 4, fontSize: 11, color: "#94a3b8" }}>
-          × {data.count}
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <strong>{resourceType}</strong>
+        {occurrenceCount > 1 && (
+          <span
+            style={{
+              background: "#1e293b",
+              borderRadius: 999,
+              padding: "2px 6px",
+              fontSize: 11,
+            }}
+          >
+            ×{occurrenceCount}
+          </span>
+        )}
+      </div>
+
+      {/* Subtitle */}
+      <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: expanded ? 4 : 0 }}>
+        {displayName}
+      </div>
+
+      {/* Expanded content */}
+      {expanded && (
+        <div style={{ marginTop: 8, borderTop: "1px solid #334155", paddingTop: 6, fontSize: 11 }}>
+          {provider && <div><strong>Provider:</strong> {provider}</div>}
+          {region && <div><strong>Region:</strong> {region}</div>}
+          {occurrenceCount && <div><strong>Count</strong> {occurrenceCount}</div>}
+          {forEach && <div><strong>Instances:</strong> for_each</div>}
+          {!forEach && instanceCount !== undefined && (
+              <div><strong>Instances:</strong> {instanceCount}</div>)}
+          {attributes && (
+            <div style={{ color: "#cbd5f5" }}>
+              {Object.entries(attributes)
+                .slice(0, 3)
+                .map(([k, v]) => (
+                  <div key={k}>
+                    {k}: {String(v)}
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
       )}
-
-      <Handle type="target" position={Position.Top} />
-      <Handle type="source" position={Position.Bottom} />
     </div>
   );
 }
+
+export default memo(TerraformNode);

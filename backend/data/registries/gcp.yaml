@@ -1,0 +1,119 @@
+provider: google
+
+categories:
+  compute:
+    - google_compute_instance
+    - google_compute_instance_group
+    - google_container_
+    - google_cloud_run_
+    - google_app_engine_
+
+  networking:
+    - google_compute_network
+    - google_compute_subnetwork
+    - google_compute_firewall
+    - google_compute_router
+    - google_compute_forwarding_rule
+    - google_cloud_load_balancer_
+    - google_vpc_access_
+    - google_network_management_
+    - google_compute_vpn_gateway
+    - google_compute_interconnect_
+    - google_compute_peering_
+    - google_compute_network_peering
+    - google_compute_global_address
+    - google_compute_address
+    - google_compute_target_tcp_proxy
+
+
+  storage:
+    - google_storage_bucket
+    - google_filestore_
+    - google_compute_disk
+    - google_persistent_disk_
+    - google_spanner_
+    - google_bigtable_
+    - google_sql_database_instance
+    - google_firestore_
+    - google_memorystore_
+    - google_data_catalog_
+    - google_cloud_storage_transfer_
+    - google_backup_for_gcs_
+    - google_metadata_store_
+
+  data:
+    - google_bigquery_
+    - google_dataproc_
+    - google_dataflow_
+    - google_pubsub_
+    - google_sql_
+    - 
+
+  iam:
+    - google_iam_
+    - google_service_account
+    - google_project_iam_
+    - google_billing_subaccount_
+    - google_billing_account_iam_
+    - google_organization_iam_
+    - google_folder_iam_
+
+  observability:
+    - google_logging_
+    - google_monitoring_
+    - google_trace_
+    - google_error_reporting_
+    - google_cloud_monitoring_
+    - google_cloud_logging_
+    - google_cloud_trace_
+    - google_cloud_error_reporting_
+    - google_cloud_operations_
+
+
+  dns: #maybe should belong to networking
+    - google_dns_
+    - google_cloud_dns_
+    - google_dns_managed_zone
+    - google_dns_record_set
+    - google_dns_policy
+    - google_dns_response_policy
+    - google_dns_response_policy_rule
+    - google_dns_peering_zone
+    - google_dns_peering_zone_dnssec_config
+    - google_dns_peering_zone_target_network #maybe belong to networking
+    - google_dns_record_set_routing_policy   
+
+  security:
+    - google_kms_
+    - google_secret_manager_
+    - google_security_center_
+    - google_cloud_identity_
+    - google_access_context_manager_
+    - google_app_armor_
+    - google_data_loss_prevention_
+    - google_identity_platform_
+
+  machine_learning:
+    - google_ai_platform_
+    - google_vertex_ai_
+    - google_automl_
+    - google_dialogflow_
+    - google_data_labeling_
+    - google_recommendation_engine_
+    - google_cloud_talent_solution_
+    - google_document_ai_
+    - google_speech_
+    - google_vision_
+    - google_translate_
+    - google_natural_language_
+    - google_video_intelligence_
+    - google_workflow_templates_
+    - google_ml_engine_
+  
+  billing:
+    - google_billing_
+    - google_billing_account_
+    - google_billing_budget_
+    - google_billing_project_info
+  
+

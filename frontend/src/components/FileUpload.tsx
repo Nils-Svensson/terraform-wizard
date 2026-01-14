@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
 interface Props {
@@ -46,8 +46,8 @@ export default function FileUpload({ sessionId, onSessionId, onGraphData }: Prop
       setError("No files selected");
       return;
     }
-
-    setLoading(true);
+  
+    setLoading(true); //
     setError(null);
 
     try {
@@ -71,8 +71,8 @@ export default function FileUpload({ sessionId, onSessionId, onGraphData }: Prop
         const txt = await uploadRes.text();
         throw new Error(txt || `Upload failed (${uploadRes.status})`);
       }
-
-      const uploadJson = await uploadRes.json();
+      
+      const uploadJson = await uploadRes.json(); 
       const newSession = uploadJson.session_id;
       if (!newSession) throw new Error("No session_id returned from upload");
 
@@ -88,7 +88,7 @@ export default function FileUpload({ sessionId, onSessionId, onGraphData }: Prop
       const graphJson = await graphRes.json();
       onGraphData(graphJson);
 
-      // optionally keep files or clear them — we'll keep them so user can re-generate
+      // optionally keep files or clear them, we'll keep them so user can re-generate
     } catch (err: any) {
       console.error("GenerateGraph error:", err);
       setError(err.message || String(err));

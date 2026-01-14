@@ -5,15 +5,20 @@ import (
 )
 
 type Resource struct {
-	ID         string
-	Type       string
-	Provider   string
-	Name       string
-	Region     string
-	Attributes map[string]any
-	DependsOn  []string
+	ID            string
+	Type          string
+	Provider      string
+	Name          string
+	Region        string
+	Attributes    map[string]any
+	DependsOn     []string
+	Expressions   map[string]hcl.Expression `json:"-"`
 
-	Expressions map[string]hcl.Expression `json:"-"`
+	DeclaredCount *int
+	ForEach       bool
+	SourceFiles   []string
+
+	Category      ResourceCategory
 }
 
 type Graph struct {
@@ -21,11 +26,29 @@ type Graph struct {
 	Edges map[string][]string // from → to
 }
 
+type ResourceCategory string
+
+const (
+    Compute         ResourceCategory = "compute"
+    Networking      ResourceCategory = "networking"
+    Storage         ResourceCategory = "storage"
+    DataEngineering ResourceCategory = "data_engineering"
+    AI				ResourceCategory = "ai"
+    IAM             ResourceCategory = "iam"
+    Security        ResourceCategory = "security"
+    Observability   ResourceCategory = "observability"
+	Billing         ResourceCategory = "billing"
+	DNS 		  	ResourceCategory = "dns"
+	Other		    ResourceCategory = "other"
+)
+
+
 type Stats struct {
 	TotalResources    int
 	ComputeCount      int
 	StorageCount      int
 	GPUCount          int
+	NetworkingCount   int
 	DistinctLocations int // Different datacenters, or geographical regions
 	CloudProviders    []string
 }

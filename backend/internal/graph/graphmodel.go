@@ -1,6 +1,8 @@
 package graph
 
-import "github.com/Nils-Svensson/terraform-wizard/backend/pkg/model"
+import (
+	"github.com/Nils-Svensson/terraform-wizard/backend/pkg/model"
+)
 
 type Node struct {
 	ID       string                 `json:"id"`
@@ -9,7 +11,12 @@ type Node struct {
 	Provider string                 `json:"provider"`
 	Region   string                 `json:"region"`
 	Attr     map[string]interface{} `json:"attr"`
-	Count    int                    `json:"count"`
+
+	InstanceCount   *int `json:"instancecount"`
+	ForEach         bool `json:"foreach"`
+	OccurrenceCount int  `json:"occurrencecount"`
+
+	Category model.ResourceCategory `json:"category"`
 }
 
 type Edge struct {
@@ -34,19 +41,22 @@ func NewGraph() *Graph {
 func (g *Graph) AddNode(r *model.Resource) {
 	for i, existing := range g.Nodes {
 		if existing.ID == r.ID {
-			g.Nodes[i].Count++ // increment counter
+			g.Nodes[i].OccurrenceCount++ // increment counter
 			return
 		}
 	}
 
 	g.Nodes = append(g.Nodes, Node{
-		ID:       r.ID,
-		Type:     r.Type,
-		Name:     r.Name,
-		Provider: r.Provider,
-		Region:   r.Region,
-		Attr:     r.Attributes,
-		Count:    1,
+		ID:              r.ID,
+		Type:            r.Type,
+		Name:            r.Name,
+		Provider:        r.Provider,
+		Region:          r.Region,
+		Attr:            r.Attributes,
+		OccurrenceCount: 1,
+		InstanceCount:   r.DeclaredCount,
+		ForEach:         r.ForEach,
+		Category:        r.Category,
 	})
 }
 

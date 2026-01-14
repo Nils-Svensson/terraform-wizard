@@ -8,9 +8,11 @@ import (
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/graph"
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/ingest"
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/parser"
+	"github.com/Nils-Svensson/terraform-wizard/backend/internal/registry"
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/storage"
 )
 
+// enableCORS is a middleware that adds CORS headers to the response
 func enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -27,16 +29,30 @@ func enableCORS(next http.Handler) http.Handler {
 }
 
 func main() {
+
+	// Load provider registry
+	gcpRegistry, err := registry.LoadFromFile("../../data/registries/gcp.yaml")
+	if err != nil {
+		log.Fatalf("Failed to load GCP registry: %v", err)
+	}
+
+	// Create a registry manager that maps provider names
+	// to their corresponding registries.
+	// The provider key must match what the parser extracts.
+	registryManager := registry.NewRegistryManager(map[string]*registry.Registry{
+		"google": gcpRegistry,
+	})
+
 	// Initialize services
-	memStorage := storage.New()                // in-memory session storage
-	parserService := parser.New()              // HCL / Terraform parser
-	ingestService := ingest.New(parserService) // file ingest service, depends on parser
-	buildService := graph.NewBuilder()
+	memStorage := storage.New()                       // in-memory session storage
+	parserService := parser.New()                     // HCL / Terraform parser
+	ingestService := ingest.New(parserService)        // file ingest service, depends on parser
+	buildService := graph.NewBuilder(registryManager) // Inject registry manager into graph builder
 
 	// Initialize handlers
 	uploadHandler := api.NewUploadHandler(ingestService, memStorage)
 	graphHandler := api.NewGraphHandler(buildService, memStorage)
-	//statsHandler := api.NewStatsHandler(memStorage)   // assume you have this
+	//statsHandler := api.NewStatsHandler(memStorage)    to-do
 
 	// Set up router
 	mux := http.NewServeMux()
@@ -49,7 +65,7 @@ func main() {
 
 	// Graph & stats endpoints
 	mux.HandleFunc("/graph", graphHandler.BuildGraph)
-	//mux.HandleFunc("/stats", statsHandler.GetStats)
+	//mux.HandleFunc("/stats", statsHandler.GetStats) to-do
 
 	// Start server
 	addr := ":8080"

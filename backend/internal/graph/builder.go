@@ -3,27 +3,45 @@ package graph
 import (
 	"fmt"
 
+	"github.com/Nils-Svensson/terraform-wizard/backend/internal/registry"
 	"github.com/Nils-Svensson/terraform-wizard/backend/pkg/model"
 )
 
-type Builder struct{}
+type Builder struct {
+	// registryManager provides access to provider specific
+	// categorization rules (GCP, AWS, Azure, etc).
+	registryManager *registry.RegistryManager
+}
 
-func NewBuilder() *Builder {
-	return &Builder{}
+// NewBuilder constructs a Builder with access to registries.
+// The builder does NOT load registries itself; they must be pre-loaded
+func NewBuilder(rm *registry.RegistryManager) *Builder {
+	return &Builder{registryManager: rm}
 }
 
 func (b *Builder) Build(resources []*model.Resource) *Graph {
 
 	fmt.Println("BUILD INPUT COUNT:", len(resources))
 	for _, r := range resources {
-		fmt.Println("RESOURCE:", r.ID, r.Type, r.Name)
+		fmt.Println("RESOURCE:", r.ID, r.Type, r.Name, r.DeclaredCount, r.Region)
+		if r.DeclaredCount != nil {
+			fmt.Println("DeclaredCount value:", *r.DeclaredCount)
+		}
+
 	}
 
 	g := NewGraph()
 
 	// 1. Add nodes
 	for _, r := range resources {
+		if reg := b.registryManager.Get(r.Provider); reg != nil {
+			r.Category = reg.GetResourceCategory(r.Type)
+		} else {
+			r.Category = model.Other
+
+		}
 		g.AddNode(r)
+		fmt.Println("Category: ", r.Category)
 	}
 
 	// 2. Add basic dependency edges
