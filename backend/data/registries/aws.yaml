@@ -1,0 +1,109 @@
+provider: aws
+
+categories:
+  compute:
+    - aws_instance
+    - aws_launch_template
+    - aws_autoscaling_
+    - aws_ec2_
+    - aws_eks_
+    - aws_ecs_
+    - aws_lambda_
+    - aws_batch_
+    - aws_app_runner_
+    - aws_elastic_beanstalk_
+    - aws_lightsail_
+
+  networking:
+    - aws_vpc
+    - aws_subnet
+    - aws_route_table
+    - aws_route
+    - aws_internet_gateway
+    - aws_nat_gateway
+    - aws_eip
+    - aws_security_group
+    - aws_network_acl
+    - aws_vpc_peering_
+    - aws_vpn_gateway
+    - aws_customer_gateway
+    - aws_transit_gateway_
+    - aws_lb_
+    - aws_alb_
+    - aws_elb_
+    - aws_globalaccelerator_
+    - aws_network_interface
+
+  storage:
+    - aws_s3_
+    - aws_efs_
+    - aws_fsx_
+    - aws_ebs_
+    - aws_volume_
+    - aws_backup_
+    - aws_storagegateway_
+    - aws_glacier_
+    - aws_data_sync_
+
+  data:
+    - aws_rds_
+    - aws_dynamodb_
+    - aws_redshift_
+    - aws_athena_
+    - aws_glue_
+    - aws_kinesis_
+    - aws_msk_
+    - aws_opensearch_
+    - aws_elasticsearch_
+    - aws_emr_
+
+  iam:
+    - aws_iam_
+    - aws_organizations_
+    - aws_account_
+    - aws_servicecatalog_
+    - aws_sso_
+    - aws_identitystore_
+
+  observability:
+    - aws_cloudwatch_
+    - aws_logs_
+    - aws_xray_
+    - aws_opensearch_
+    - aws_elasticsearch_
+    - aws_synthetics_
+
+  dns: # arguably networking
+    - aws_route53_
+    - aws_route53domains_
+
+  security:
+    - aws_kms_
+    - aws_secretsmanager_
+    - aws_securityhub_
+    - aws_guardduty_
+    - aws_macie_
+    - aws_shield_
+    - aws_waf_
+    - aws_wafv2_
+    - aws_inspector_
+    - aws_detective_
+    - aws_iam_access_analyzer_
+
+  machine_learning:
+    - aws_sagemaker_
+    - aws_comprehend_
+    - aws_rekognition_
+    - aws_translate_
+    - aws_textract_
+    - aws_lex_
+    - aws_polly_
+    - aws_forecast_
+    - aws_personalize_
+
+  billing:
+    - aws_budgets_
+    - aws_ce_
+    - aws_cur_
+    - aws_pricing_
+    - aws_costexplorer_

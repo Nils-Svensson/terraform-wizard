@@ -1,7 +1,52 @@
 package registry
 
+import (
+	"context"
+	"fmt"
+	"sync"
+)
 
-// RegistryManager holds provider specific registries (GCP, AWS, Azure, etc).
+type RegistryManager struct {
+	mu         sync.RWMutex
+	registries map[string]*Registry
+}
+
+func NewRegistryManager() *RegistryManager {
+	return &RegistryManager{
+		registries: make(map[string]*Registry),
+	}
+}
+
+func (m *RegistryManager) LoadSource(
+	ctx context.Context,
+	source RegistrySource,
+) error {
+
+	rc, err := source.Load(ctx)
+	if err != nil {
+		return fmt.Errorf("load source %s: %w", source.Name(), err)
+	}
+	defer rc.Close()
+
+	reg := &Registry{}
+	if err := reg.Load(ctx, rc); err != nil {
+		return fmt.Errorf("parse registry %s: %w", source.Name(), err)
+	}
+
+	m.mu.Lock()
+	m.registries[source.Name()] = reg
+	m.mu.Unlock()
+
+	return nil
+}
+
+func (m *RegistryManager) Get(provider string) *Registry {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.registries[provider]
+}
+
+/*// RegistryManager holds provider specific registries (GCP, AWS, Azure, etc).
 // It acts as a runtime lookup table keyed by provider name
 // (e.g. "google", "aws", "azurerm").
 type RegistryManager struct {
@@ -25,3 +70,4 @@ func (m *RegistryManager) Get(provider string) *Registry {
 	}
 	return nil
 }
+*/

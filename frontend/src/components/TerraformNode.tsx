@@ -13,28 +13,28 @@ function TerraformNode(props: NodeProps) {
     resourceType,
     displayName,
     provider,
-    region,
     attributes,
     expanded,
     instanceCount,
     occurrenceCount,
     forEach,
+    location,
     
   } = data;
 
   const HIGHLIGHT_STYLES = {
     selected: {
-      glow: "rgba(34,197,94,0.8)", // green
+      glow: "rgba(34, 197, 94, 0.88)", // green
       border: "#22c55e",
       opacity: 1,
     },
     connected: {
-      glow: "rgba(239,68,68,0.7)", // red
+      glow: "rgba(210, 73, 73, 0.79)", // red
       border: "#ef4444",
       opacity: 1,
     },
     dimmed: {
-      glow: "rgba(163, 167, 191, 0.39)",
+      glow: "rgba(157, 157, 183, 0.55)",
       border: "#334155",
       opacity: 0.35,
     },
@@ -44,14 +44,15 @@ function TerraformNode(props: NodeProps) {
   const style = HIGHLIGHT_STYLES[highlight];
   
 
-  const depth = Math.min(occurrenceCount ?? 1, 5);
+  const depth = Math.min(occurrenceCount ?? 1, 3);
 
   const depthShadow = Array.from({ length: depth })
-    .map(
-      (_, i) =>
-        `0 ${i * 2}px ${6 + i * 3} ${style.glow}`
-    )
-  .join(",");
+  .map(
+    (_, i) =>
+      `0 ${i * 2}px ${6 + i * 3}px ${i * 1.5}px ${style.glow}`
+  )
+  .join(", ");
+
 
   const borderWidth = Math.min(depth, 3);
 
@@ -71,8 +72,8 @@ function TerraformNode(props: NodeProps) {
       }}
     >
       {/* Handles */}
-      <Handle type="target" position={Position.Left} />
-      <Handle type="source" position={Position.Right} />
+      <Handle type="target" position={Position.Top} />
+      <Handle type="source" position={Position.Bottom} />
 
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -100,15 +101,15 @@ function TerraformNode(props: NodeProps) {
       {expanded && (
         <div style={{ marginTop: 8, borderTop: "1px solid #334155", paddingTop: 6, fontSize: 11 }}>
           {provider && <div><strong>Provider:</strong> {provider}</div>}
-          {region && <div><strong>Region:</strong> {region}</div>}
-          {occurrenceCount && <div><strong>Count</strong> {occurrenceCount}</div>}
+          {location?.kind && (<div> <strong>{location.kind}:</strong> {location.value}</div>)}
+          {occurrenceCount && <div><strong>count</strong> {occurrenceCount}</div>}
           {forEach && <div><strong>Instances:</strong> for_each</div>}
           {!forEach && instanceCount !== undefined && (
               <div><strong>Instances:</strong> {instanceCount}</div>)}
           {attributes && (
             <div style={{ color: "#cbd5f5" }}>
               {Object.entries(attributes)
-                .slice(0, 3)
+                .slice(0, 6)
                 .map(([k, v]) => (
                   <div key={k}>
                     {k}: {String(v)}

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"context"
 
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/api"
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/graph"
@@ -30,24 +31,38 @@ func enableCORS(next http.Handler) http.Handler {
 
 func main() {
 
-	// Load provider registry
-	gcpRegistry, err := registry.LoadFromFile("../../data/registries/gcp.yaml")
-	if err != nil {
-		log.Fatalf("Failed to load GCP registry: %v", err)
-	}
+	
+	ctx := context.Background()
 
-	// Create a registry manager that maps provider names
-	// to their corresponding registries.
-	// The provider key must match what the parser extracts.
-	registryManager := registry.NewRegistryManager(map[string]*registry.Registry{
-		"google": gcpRegistry,
-	})
+sources := []registry.RegistrySource{
+	&registry.FileSource{
+		Provider: "google",
+		Path:     "../../data/registries/gcp.yaml",
+	},
+	&registry.FileSource{
+		Provider: "aws",
+		Path:     "../../data/registries/aws.yaml",
+	},
+	&registry.FileSource{
+		Provider: "azurerm",
+		Path:     "../../data/registries/azure.yaml",
+	},
+}
+
+mgr := registry.NewRegistryManager()
+
+for _, src := range sources {
+	if err := mgr.LoadSource(ctx, src); err != nil {
+		log.Fatalf("failed to load %s: %v", src.Name(), err)
+	}
+}
+
 
 	// Initialize services
 	memStorage := storage.New()                       // in-memory session storage
 	parserService := parser.New()                     // HCL / Terraform parser
 	ingestService := ingest.New(parserService)        // file ingest service, depends on parser
-	buildService := graph.NewBuilder(registryManager) // Inject registry manager into graph builder
+	buildService := graph.NewBuilder(mgr) // Inject registry manager into graph builder
 
 	// Initialize handlers
 	uploadHandler := api.NewUploadHandler(ingestService, memStorage)
@@ -66,6 +81,14 @@ func main() {
 	// Graph & stats endpoints
 	mux.HandleFunc("/graph", graphHandler.BuildGraph)
 	//mux.HandleFunc("/stats", statsHandler.GetStats) to-do
+
+
+	// Health check endpoint
+	http.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
+	
 
 	// Start server
 	addr := ":8080"

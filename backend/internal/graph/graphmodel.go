@@ -5,18 +5,19 @@ import (
 )
 
 type Node struct {
-	ID       string                 `json:"id"`
-	Type     string                 `json:"type"`
-	Name     string                 `json:"name"`
-	Provider string                 `json:"provider"`
-	Region   string                 `json:"region"`
-	Attr     map[string]interface{} `json:"attr"`
+	ID       string                  `json:"id"`
+	Type     string                  `json:"type"`
+	Name     string                  `json:"name"`
+	Provider string                  `json:"provider"`
+	//Region   string                 `json:"region"`
+	Attr     map[string]string       `json:"attr,omitempty"`
 
-	InstanceCount   *int `json:"instancecount"`
-	ForEach         bool `json:"foreach"`
-	OccurrenceCount int  `json:"occurrencecount"`
+	InstanceCount   *int 			 `json:"instancecount"`
+	ForEach         bool 			 `json:"foreach"`
+	OccurrenceCount int  			 `json:"occurrencecount"`
 
-	Category model.ResourceCategory `json:"category"`
+	Category model.ResourceCategory  `json:"category"`
+	Location *model.ResourceLocation `json:"location,omitempty"`
 }
 
 type Edge struct {
@@ -51,12 +52,13 @@ func (g *Graph) AddNode(r *model.Resource) {
 		Type:            r.Type,
 		Name:            r.Name,
 		Provider:        r.Provider,
-		Region:          r.Region,
+		//Region:          r.Region,
 		Attr:            r.Attributes,
 		OccurrenceCount: 1,
 		InstanceCount:   r.DeclaredCount,
 		ForEach:         r.ForEach,
 		Category:        r.Category,
+		Location:		 r.Location,
 	})
 }
 

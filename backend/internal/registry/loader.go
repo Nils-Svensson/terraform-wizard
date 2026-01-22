@@ -2,11 +2,27 @@ package registry
 
 import (
 	"os"
-
-	"gopkg.in/yaml.v3"
+	"context"
+	"io"
 )
 
-func LoadFromFile(path string) (*Registry, error) {
+type FileSource struct {
+	Path string
+	Provider string
+}
+
+func (f *FileSource) Name() string {
+	return f.Provider
+}
+
+
+
+func (f *FileSource) Load(ctx context.Context) (io.ReadCloser, error) {
+	return os.Open(f.Path)
+}
+
+
+/*func LoadFromFile(path string) (*Registry, error) {
 	// Read the YAML file
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -21,4 +37,4 @@ func LoadFromFile(path string) (*Registry, error) {
 
 	return &r, nil
 
-}
+}*/

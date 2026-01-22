@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/gocty"
+	"strings"
 )
 
 type Service struct {
@@ -19,9 +20,9 @@ func New() *Service {
 	return &Service{}
 }
 
-func (s *Service) Parse(content []byte, filname string) ([]*model.Resource, error) {
+func (s *Service) Parse(content []byte, filename string) ([]*model.Resource, error) {
 	parser := hclparse.NewParser()
-	file, diag := parser.ParseHCL(content, filname)
+	file, diag := parser.ParseHCL(content, filename)
 	if diag.HasErrors() {
 		return nil, fmt.Errorf("failed to parse HCL: %s", diag.Error())
 	}
@@ -34,7 +35,6 @@ func (s *Service) Parse(content []byte, filname string) ([]*model.Resource, erro
 	var resources []*model.Resource
 
 	for _, block := range body.Blocks {
-		// Only "resource" and "data" blocks
 		if block.Type != "resource" && block.Type != "data" {
 			continue
 		}
@@ -48,24 +48,45 @@ func (s *Service) Parse(content []byte, filname string) ([]*model.Resource, erro
 		provider := extractProvider(resourceType)
 
 		r := &model.Resource{
-			ID:            fmt.Sprintf("%s.%s", resourceType, resourceName),
-			Type:          resourceType,
-			Name:          resourceName,
-			Provider:      provider,
-			Region:        findRegionInProviders(body), //This is probably wrong.
-			Attributes:    map[string]any{},
-			DependsOn:     []string{},
-			Expressions:   map[string]hcl.Expression{},
-			DeclaredCount: nil,
-			ForEach:       false,
-			
-		
+			ID:          fmt.Sprintf("%s.%s", resourceType, resourceName),
+			Type:        resourceType,
+			Name:        resourceName,
+			Provider:    provider,
+			Attributes:  map[string]string{},
+			DependsOn:   []string{},
+			Expressions: map[string]hcl.Expression{},
+			ForEach:     false,
+			Location:    nil,
 		}
 
-		// Extract attributes
-		for key, attr := range block.Body.Attributes {
-			r.Expressions[key] = attr.Expr
+		// Collect ALL expressions recursively
+		collectExpressionsFromBody(block.Body, r.Expressions)
 
+		r.Attributes = map[string]string{}
+		collectAttributes(block.Body, content, "", r.Attributes)
+
+		locationPriority := []string{
+			"zone",
+			"location",
+			"region",
+			"locations",
+			"global",
+		}
+		
+		for _, k := range locationPriority {
+			if v, ok := r.Attributes[k]; ok {
+				r.Location = &model.ResourceLocation{
+					Kind:  k,
+					Value: v,
+				}
+				break
+			}
+		}
+		
+
+
+		// Extract top-level attributes only
+		/*for key, attr := range block.Body.Attributes {
 			val, diag := attr.Expr.Value(nil)
 			if !diag.HasErrors() {
 				var out interface{}
@@ -79,40 +100,22 @@ func (s *Service) Parse(content []byte, filname string) ([]*model.Resource, erro
 					}
 				}
 			}
-		}
-
-		/*if countAttr, exists := block.Body.Attributes["count"]; exists {
-			val, diag := countAttr.Expr.Value(nil)
-			if !diag.HasErrors() && val.Type().IsPrimitiveType() {
-				var out interface{}
-				if err := gocty.FromCtyValue(val, &out); err == nil {
-					if intVal, ok := out.(int); ok {
-						r.DeclaredCount = &intVal
-					}
-				}
-			}
 		}*/
 
+		// count
 		if countAttr, exists := block.Body.Attributes["count"]; exists {
 			val, diag := countAttr.Expr.Value(nil)
-
-			if !diag.HasErrors() && val.IsKnown() {
-				switch {
-				case val.Type().Equals(cty.Number):
-					i, _ := val.AsBigFloat().Int64()
-					ii := int(i)
-					r.DeclaredCount = &ii
-				}
-			} else {
-				// count exists but is dynamic
-				r.DeclaredCount = nil
+			if !diag.HasErrors() && val.IsKnown() && val.Type().Equals(cty.Number) {
+				i, _ := val.AsBigFloat().Int64()
+				ii := int(i)
+				r.DeclaredCount = &ii
 			}
 		}
 
 		if _, exists := block.Body.Attributes["for_each"]; exists {
 			r.ForEach = true
 		}
-		// Fallback: detect region from provider blocks
+
 		if r.Region == "" {
 			r.Region = findRegionInProviders(body)
 		}
@@ -120,10 +123,48 @@ func (s *Service) Parse(content []byte, filname string) ([]*model.Resource, erro
 		resources = append(resources, r)
 	}
 
+	
 	s.detectDependencies(resources)
 
 	return resources, nil
 }
+
+// exprString extracts the original source string for an expression
+func exprString(expr hcl.Expression, src []byte) string {
+	r := expr.Range()
+	return strings.TrimSpace(string(src[r.Start.Byte:r.End.Byte]))
+}
+
+// collectAttributes recursively collects all attributes from a body and its nested blocks
+func collectAttributes(
+	body *hclsyntax.Body,
+	src []byte,
+	prefix string,
+	out map[string]string,
+) {
+	for name, attr := range body.Attributes {
+		key := name
+		if prefix != "" {
+			key = prefix + "." + name
+		}
+		out[key] = exprString(attr.Expr, src)
+	}
+
+	for _, block := range body.Blocks {
+		blockKey := block.Type
+		if len(block.Labels) > 0 {
+			blockKey += "[" + strings.Join(block.Labels, ",") + "]"
+		}
+
+		if prefix != "" {
+			blockKey = prefix + "." + blockKey
+		}
+
+		collectAttributes(block.Body, src, blockKey, out)
+	}
+}
+
+
 
 func extractProvider(resourceType string) string {
 	for i := 0; i < len(resourceType); i++ {
@@ -157,6 +198,21 @@ func findRegionInProviders(body *hclsyntax.Body) string {
 		}
 	}
 	return ""
+}
+
+func collectExpressionsFromBody(
+	body *hclsyntax.Body,
+	out map[string]hcl.Expression,
+) {
+	// attributes at this level
+	for name, attr := range body.Attributes {
+		out[name] = attr.Expr
+	}
+
+	// recurse into nested blocks
+	for _, block := range body.Blocks {
+		collectExpressionsFromBody(block.Body, out)
+	}
 }
 
 func (s *Service) detectDependencies(resources []*model.Resource) {

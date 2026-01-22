@@ -9,6 +9,11 @@ import (
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/storage"
 )
 
+type GraphResponse struct {
+	Graph    *graph.Graph 		   `json:"graph"`
+	Analysis *graph.GraphAnalysis  `json:"analysis"`
+}
+
 type GraphHandler struct {
 	builder *graph.Builder
 	storage *storage.Storage
@@ -36,9 +41,16 @@ func (h *GraphHandler) BuildGraph(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	graph := h.builder.Build(resources)
+	g := h.builder.Build(resources)
+	analysis := graph.AnalyzeGraph(g)
 
-	if err := json.NewEncoder(w).Encode(graph); err != nil {
+	resp := GraphResponse{
+		Graph:    g,
+		Analysis: analysis,
+	}
+	
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

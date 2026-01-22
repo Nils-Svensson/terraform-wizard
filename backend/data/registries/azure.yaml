@@ -1,0 +1,103 @@
+provider: azurerm
+
+categories:
+  compute:
+    - azurerm_virtual_machine
+    - azurerm_linux_virtual_machine
+    - azurerm_windows_virtual_machine
+    - azurerm_virtual_machine_scale_set
+    - azurerm_kubernetes_
+    - azurerm_container_
+    - azurerm_app_service_
+    - azurerm_function_
+    - azurerm_batch_
+    - azurerm_service_fabric_
+    - azurerm_arc_
+
+  networking:
+    - azurerm_virtual_network
+    - azurerm_subnet
+    - azurerm_network_interface
+    - azurerm_network_security_group
+    - azurerm_route_table
+    - azurerm_public_ip
+    - azurerm_lb_
+    - azurerm_application_gateway_
+    - azurerm_firewall_
+    - azurerm_nat_gateway_
+    - azurerm_private_endpoint
+    - azurerm_private_dns_
+    - azurerm_express_route_
+    - azurerm_virtual_network_gateway
+    - azurerm_traffic_manager_
+
+  storage:
+    - azurerm_storage_account
+    - azurerm_storage_
+    - azurerm_managed_disk
+    - azurerm_disk_
+    - azurerm_file_
+    - azurerm_blob_
+    - azurerm_data_lake_
+    - azurerm_backup_
+    - azurerm_recovery_services_
+
+  data:
+    - azurerm_sql_
+    - azurerm_postgresql_
+    - azurerm_mysql_
+    - azurerm_mariadb_
+    - azurerm_cosmosdb_
+    - azurerm_synapse_
+    - azurerm_databricks_
+    - azurerm_data_factory_
+    - azurerm_stream_analytics_
+    - azurerm_eventhub_
+    - azurerm_servicebus_
+    - azurerm_kusto_
+
+  iam:
+    - azurerm_role_
+    - azurerm_user_assigned_identity
+    - azurerm_managed_identity
+    - azurerm_active_directory_
+    - azurerm_azuread_
+    - azurerm_subscription_
+    - azurerm_management_group_
+
+  observability:
+    - azurerm_monitor_
+    - azurerm_log_analytics_
+    - azurerm_application_insights_
+    - azurerm_dashboard_
+    - azurerm_alert_
+    - azurerm_workbook_
+
+  dns: # arguably networking
+    - azurerm_dns_
+    - azurerm_private_dns_
+    - azurerm_traffic_manager_profile
+
+  security:
+    - azurerm_key_vault_
+    - azurerm_security_center_
+    - azurerm_defender_
+    - azurerm_policy_
+    - azurerm_blueprint_
+    - azurerm_sentinel_
+    - azurerm_ddos_
+    - azurerm_firewall_policy_
+
+  machine_learning:
+    - azurerm_machine_learning_
+    - azurerm_cognitive_
+    - azurerm_bot_
+    - azurerm_search_
+    - azurerm_databricks_workspace
+    - azurerm_openai_
+    - azurerm_form_recognizer_
+
+  billing:
+    - azurerm_consumption_
+    - azurerm_billing_
+    - azurerm_cost_management_

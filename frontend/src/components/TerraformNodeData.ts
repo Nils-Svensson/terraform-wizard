@@ -1,3 +1,9 @@
+
+export interface ResourceLocation {
+  kind: string;
+  value: string;
+}
+
 export type HighlightState =
   | "selected"
   | "connected"
@@ -7,8 +13,7 @@ export interface TerraformNodeData {
     displayName: string;
     resourceType: string;
     provider?: string;
-    region?: string;
-    attributes?: Record<string, any>;
+    attributes?: Record<string, string>;
 
     expanded: boolean
     instanceCount?: number;
@@ -16,5 +21,6 @@ export interface TerraformNodeData {
     forEach: boolean;
     highlightState?: HighlightState;
     category: string;
+    location?: ResourceLocation;
   }
   

@@ -1,8 +1,12 @@
 package model
 
+
+// Package model defines the core data structures for representing Terraform resources and their relationships.
 import (
 	"github.com/hashicorp/hcl/v2"
 )
+
+
 
 type Resource struct {
 	ID            string
@@ -10,7 +14,7 @@ type Resource struct {
 	Provider      string
 	Name          string
 	Region        string
-	Attributes    map[string]any
+	Attributes    map[string]string
 	DependsOn     []string
 	Expressions   map[string]hcl.Expression `json:"-"`
 
@@ -19,6 +23,17 @@ type Resource struct {
 	SourceFiles   []string
 
 	Category      ResourceCategory
+	Location 	 *ResourceLocation
+}
+
+type ResourceLocation struct {
+	Kind  string // "region" | "zone" | "location" | "global"
+	Value string // literal or expression string
+}
+
+type ProviderContext struct {
+	Provider string
+	Region   string
 }
 
 type Graph struct {

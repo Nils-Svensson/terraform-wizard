@@ -22,7 +22,9 @@ import {
 import TerraformNode from "./TerraformNode";
 import "@xyflow/react/dist/style.css";
 import { GraphToolbar } from "./GraphToolbar";
-import type { TerraformNodeData } from "./TerraformNodeData";
+import type { ResourceLocation, TerraformNodeData } from "./TerraformNodeData";
+import { layoutDag } from "../layout/dagLayout";
+import type { TraversalData } from "../layout/types";
 
 const nodeTypes: NodeTypes = {
   terraform: TerraformNode,
@@ -43,23 +45,30 @@ interface BackendNode {
   provider?: string;
   region?: string;
   category: string;
-  attr?: Record<string, any>;
-  count: number;
+  attr?: Record<string, string>; 
+  location?: ResourceLocation; 
 
   occurrencecount: number;
   instancecount?: number | null,
   foreach: boolean;
 
 }
-// Edge connecting two nodes
+// Edge connecting two nodes °
+
 interface BackendEdge {
   from: string;
   to: string;
 }
 
 interface BackendGraph {
+  graph: {
   nodes: BackendNode[];
   edges: BackendEdge[];
+  };
+  analysis:  {
+    traversalData: Record<string, TraversalData>;
+    degree: Record<string, number>;
+  };
 }
 
 /* =====================
@@ -73,23 +82,35 @@ export default function GraphWindow({
 }) {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
+  
 
   // Convert backend format to XYFlow nodes/edges
   useEffect(() => {
-    if (!graphData) return;
+    console.log("graphData", graphData);
+    console.log("graphData analysis", graphData?.analysis);
+    if (!graphData || !graphData.analysis) return;
 
-    const rfNodes: Node[] = graphData.nodes.map((n, i) => ({
+    console.log("GRAPH DATA", graphData);
+    console.log("ANALYSIS", graphData.analysis.traversalData);
+
+    const layout = layoutDag(
+      graphData.graph.nodes.map(n => ({ id: n.id })),
+      graphData.analysis.traversalData,
+      graphData.analysis.degree
+    );
+
+    console.log("LAYOUT POSITIONS", layout.positions);
+
+    const rfNodes: Node[] = graphData.graph.nodes.map(n => ({
+      
       id: n.id,
       type: "terraform",
-      position: {
-        x: (i % 4) * 260,
-        y: Math.floor(i / 4) * 160,
-      },
+      position: layout.positions[n.id]  ?? { x: 0 , y: 0 },
+
       data: {
         displayName: n.name,
         resourceType: n.type,
         provider: n.provider,
-        region: n.region,
         attributes: n.attr,
         category: n.category,
         occurrenceCount: n.occurrencecount,
@@ -97,11 +118,12 @@ export default function GraphWindow({
        
         expanded: false,
         forEach: n.foreach ?? false,
+        location: n.location,
 
       },
     }));
     
-    const rfEdges: Edge[] = graphData.edges.map((e, i) => ({
+    const rfEdges: Edge[] = graphData.graph.edges.map((e, i) => ({
       id: `edge-${i}`,
       source: e.from,
       target: e.to,
@@ -125,7 +147,7 @@ export default function GraphWindow({
       map.get(edge.source)!.add(edge.target);
       map.get(edge.target)!.add(edge.source); // undirected for now
     }
-  
+    
     return map;
   }, [edges]);
 
@@ -157,7 +179,7 @@ export default function GraphWindow({
   
 
   
-  const highlightedNodes = { selected, connected };
+  const highlightedNodes = { selected, connected }; //something about useMemo here causes issues
   const styledNodes = useMemo(() => {
     return nodes.map(node => {
       let highlightState: Highlight = "dimmed";
@@ -217,7 +239,7 @@ export default function GraphWindow({
 
   // Render the ReactFlow graph
   return (
-    <div style={{ width: "100%", height: "100%" }}>
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
       <GraphToolbar
         activeCategories={activeCategories}
         onToggleCategory={(cat) => {
@@ -228,6 +250,7 @@ export default function GraphWindow({
            });
           }}
         />
+     <div style={{ flex: 1 }}></div>   
       <ReactFlow
         nodes={styledNodes}
         edges={edges}
@@ -244,3 +267,4 @@ export default function GraphWindow({
     </div>
   );
 }
+
