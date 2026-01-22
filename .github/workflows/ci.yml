@@ -6,14 +6,13 @@ on:
   pull_request:
 
 jobs:
-  build:
+  backend:
+    name: Backend CI
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      #backend
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -25,11 +24,16 @@ jobs:
       - name: Go build
         run: go build ./backend/...
 
-      
       - name: Go test
         run: go test ./backend/...
 
-        #frontend
+  frontend:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -39,6 +43,6 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Frontend build
+      - name: Build frontend
         working-directory: frontend
         run: npm run build
