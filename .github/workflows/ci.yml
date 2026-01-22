@@ -53,7 +53,7 @@ jobs:
 
       - name: Build docker image
         run: |
-          IMAGE=europe-north1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/terraform-wizard/backend:latest
+          IMAGE=europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/terraform-wizard/backend:latest
           docker build -t $IMAGE -f backend/Dockerfile .
           docker push $IMAGE
 
