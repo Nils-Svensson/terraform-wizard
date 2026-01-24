@@ -82,10 +82,6 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
-	mux.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("test"))
-	})
 
 	// Upload endpoints
 	mux.HandleFunc("/upload", uploadHandler.UploadTerraform)
