@@ -77,12 +77,10 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/healthz/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Terraform Wizard backend"))
+		w.Write([]byte("ok"))
 	})
-
-	handler := enableCORS(mux)
 
 	// Upload endpoints
 	mux.HandleFunc("/upload", uploadHandler.UploadTerraform)
@@ -91,6 +89,13 @@ func main() {
 	// Graph & stats endpoints
 	mux.HandleFunc("/graph", graphHandler.BuildGraph)
 	//mux.HandleFunc("/stats", statsHandler.GetStats) to-do
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Terraform Wizard backend"))
+	})
+	
+	handler := enableCORS(mux)
 
 	port := os.Getenv("PORT")
 	if port == "" {
