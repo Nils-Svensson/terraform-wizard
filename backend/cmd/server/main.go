@@ -1,9 +1,9 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
-	"context"
 	"os"
 
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/api"
@@ -32,38 +32,36 @@ func enableCORS(next http.Handler) http.Handler {
 
 func main() {
 
-	
 	ctx := context.Background()
 
-sources := []registry.RegistrySource{
-	&registry.FileSource{
-		Provider: "google",
-		Path:     "../../data/registries/gcp.yaml",
-	},
-	&registry.FileSource{
-		Provider: "aws",
-		Path:     "../../data/registries/aws.yaml",
-	},
-	&registry.FileSource{
-		Provider: "azurerm",
-		Path:     "../../data/registries/azure.yaml",
-	},
-}
-
-mgr := registry.NewRegistryManager()
-
-for _, src := range sources {
-	if err := mgr.LoadSource(ctx, src); err != nil {
-		log.Fatalf("failed to load %s: %v", src.Name(), err)
+	sources := []registry.RegistrySource{
+		&registry.FileSource{
+			Provider: "google",
+			Path:     "../../data/registries/gcp.yaml",
+		},
+		&registry.FileSource{
+			Provider: "aws",
+			Path:     "../../data/registries/aws.yaml",
+		},
+		&registry.FileSource{
+			Provider: "azurerm",
+			Path:     "../../data/registries/azure.yaml",
+		},
 	}
-}
 
+	mgr := registry.NewRegistryManager()
+
+	for _, src := range sources {
+		if err := mgr.LoadSource(ctx, src); err != nil {
+			log.Fatalf("failed to load %s: %v", src.Name(), err)
+		}
+	}
 
 	// Initialize services
-	memStorage := storage.New()                       // in-memory session storage
-	parserService := parser.New()                     // HCL / Terraform parser
-	ingestService := ingest.New(parserService)        // file ingest service, depends on parser
-	buildService := graph.NewBuilder(mgr) // Inject registry manager into graph builder
+	memStorage := storage.New()                // in-memory session storage
+	parserService := parser.New()              // HCL / Terraform parser
+	ingestService := ingest.New(parserService) // file ingest service, depends on parser
+	buildService := graph.NewBuilder(mgr)      // Inject registry manager into graph builder
 
 	// Initialize handlers
 	uploadHandler := api.NewUploadHandler(ingestService, memStorage)
@@ -72,6 +70,11 @@ for _, src := range sources {
 
 	// Set up router
 	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Terraform Wizard backend"))
+	})
 
 	handler := enableCORS(mux)
 
@@ -83,17 +86,16 @@ for _, src := range sources {
 	mux.HandleFunc("/graph", graphHandler.BuildGraph)
 	//mux.HandleFunc("/stats", statsHandler.GetStats) to-do
 
-
 	// Health check endpoint
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	})
-	
+
 	port := os.Getenv("PORT")
-		if port == "" {
+	if port == "" {
 		port = "8080"
-}
+	}
 
 	// Start server
 	addr := "0.0.0.0:" + port
