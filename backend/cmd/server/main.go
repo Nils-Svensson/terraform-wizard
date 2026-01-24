@@ -71,6 +71,12 @@ func main() {
 	// Set up router
 	mux := http.NewServeMux()
 
+	// Health check endpoint
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
+
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Terraform Wizard backend"))
@@ -85,12 +91,6 @@ func main() {
 	// Graph & stats endpoints
 	mux.HandleFunc("/graph", graphHandler.BuildGraph)
 	//mux.HandleFunc("/stats", statsHandler.GetStats) to-do
-
-	// Health check endpoint
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
-	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
