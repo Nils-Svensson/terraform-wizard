@@ -53,10 +53,11 @@ jobs:
 
       - name: Build and push docker image
         run: |
-          IMAGE=europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/terraform-wizard/backend:latest
-          docker build -t $IMAGE -f backend/Dockerfile .
+          SHA=${GITHUB_SHA::7}
+          IMAGE=europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/terraform-wizard/backend
+          docker build -t $IMAGE -t $IMAGE:$SHA -f backend/Dockerfile .
           docker push $IMAGE
-
+          docker push $IMAGE:$SHA  
       
 
 

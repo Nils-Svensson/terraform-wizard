@@ -53,6 +53,7 @@ export default function FileUpload({ sessionId, onSessionId, onGraphData }: Prop
     try {
       // Build form with files (do NOT send session_id to force new session)
       const form = new FormData();
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
       if (sessionId) {
         console.log("Sending existing session_id:", sessionId);
@@ -61,7 +62,7 @@ export default function FileUpload({ sessionId, onSessionId, onGraphData }: Prop
       
       files.forEach((f) => form.append("files", f));
 
-      const uploadRes = await fetch("http://localhost:8080/upload", {
+      const uploadRes = await fetch(`${API_BASE}/upload`, {
         method: "POST",
         body: form,
       });
@@ -79,7 +80,7 @@ export default function FileUpload({ sessionId, onSessionId, onGraphData }: Prop
       onSessionId(newSession);
 
       // fetch graph
-      const graphRes = await fetch(`http://localhost:8080/graph?session_id=${newSession}`);
+      const graphRes = await fetch(`${API_BASE}/graph?session_id=${newSession}`);
       if (!graphRes.ok) {
         const txt = await graphRes.text();
         throw new Error(txt || `Graph fetch failed (${graphRes.status})`);

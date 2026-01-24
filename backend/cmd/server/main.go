@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"context"
+	"os"
 
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/api"
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/graph"
@@ -84,15 +85,19 @@ for _, src := range sources {
 
 
 	// Health check endpoint
-	http.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	})
 	
+	port := os.Getenv("PORT")
+		if port == "" {
+		port = "8080"
+}
 
 	// Start server
-	addr := ":8080"
-	log.Printf("Terraform Wizard backend running at http://localhost%s\n", addr)
+	addr := ":" + port
+	log.Printf("Terraform Wizard backend running on port%s\n", addr)
 	if err := http.ListenAndServe(addr, handler); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}

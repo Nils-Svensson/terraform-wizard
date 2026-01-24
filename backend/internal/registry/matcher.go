@@ -9,7 +9,7 @@ import (
 func (r *Registry) GetResourceCategory(resourceType string) model.ResourceCategory {
 	var (
 		bestCategory model.ResourceCategory = model.Other
-		longestMatch int                   = 0
+		longestMatch int                    = 0
 	)
 
 	for category, prefixes := range r.Categories {
