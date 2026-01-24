@@ -96,7 +96,7 @@ for _, src := range sources {
 }
 
 	// Start server
-	addr := ":" + port
+	addr := "0.0.0.0:" + port
 	log.Printf("Terraform Wizard backend running on port%s\n", addr)
 	if err := http.ListenAndServe(addr, handler); err != nil {
 		log.Fatalf("Server failed: %v", err)
