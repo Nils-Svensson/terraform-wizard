@@ -14,21 +14,6 @@ import (
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/storage"
 )
 
-// enableCORS is a middleware that adds CORS headers to the response
-func enableCORS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
 
 func main() {
 
@@ -96,7 +81,7 @@ func main() {
 		w.Write([]byte("Terraform Wizard backend"))
 	})
 
-	handler := enableCORS(mux)
+	handler := mux
 
 	port := os.Getenv("PORT")
 	if port == "" {
