@@ -2,17 +2,22 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
-	"os"
+	"strings"
 )
 
-const metadataURL = "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity"
+const (
+	metadataURL = "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity"
+	backendURL  = "https://backend-554421324083.europe-north2.run.app"
+)
 
 func getIdentityToken(audience string) (string, error) {
-	req, _ := http.NewRequest("GET", metadataURL+"?audience="+url.QueryEscape(audience), nil)
+	req, _ := http.NewRequest("GET",
+		metadataURL+"?audience="+url.QueryEscape(audience), nil)
 	req.Header.Set("Metadata-Flavor", "Google")
 
 	resp, err := http.DefaultClient.Do(req)
@@ -21,31 +26,36 @@ func getIdentityToken(audience string) (string, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("metadata server returned %s", resp.Status)
+	}
+
 	b, _ := io.ReadAll(resp.Body)
 	return string(b), nil
 }
 
 func proxyRequest(w http.ResponseWriter, r *http.Request) {
-	backend := os.Getenv("BACKEND_URL")
-	if backend == "" {
-		http.Error(w, "BACKEND_URL not set", 500)
-		return
-	}
-
-	token, err := getIdentityToken(backend)
+	token, err := getIdentityToken(backendURL)
 	if err != nil {
 		http.Error(w, "failed to get identity token", 500)
 		return
 	}
 
-	target := backend + r.URL.Path
+	path := strings.TrimPrefix(r.URL.Path, "/api")
+	target := backendURL + path
 	if r.URL.RawQuery != "" {
 		target += "?" + r.URL.RawQuery
 	}
 
 	body, _ := io.ReadAll(r.Body)
 	req, _ := http.NewRequest(r.Method, target, bytes.NewReader(body))
-	req.Header = r.Header.Clone()
+
+	for k, v := range r.Header {
+		if k == "Host" {
+			continue
+		}
+		req.Header[k] = v
+	}
 	req.Header.Set("Authorization", "Bearer "+token)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -56,8 +66,12 @@ func proxyRequest(w http.ResponseWriter, r *http.Request) {
 	defer resp.Body.Close()
 
 	for k, v := range resp.Header {
+		if k == "Transfer-Encoding" || k == "Connection" {
+			continue
+		}
 		w.Header()[k] = v
 	}
+
 	w.WriteHeader(resp.StatusCode)
 	io.Copy(w, resp.Body)
 }

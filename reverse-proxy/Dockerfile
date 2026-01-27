@@ -10,12 +10,12 @@
     RUN go mod download
     
     # Copy proxy code
-    COPY proxy ./proxy
+    COPY reverse-proxy ./reverse-proxy
     
   
     # Build the Go binary
     # Path points to where main.go actually lives
-    RUN go build -o /terraform-wizard-proxy ./proxy
+    RUN go build -o /terraform-wizard-proxy ./reverse-proxy
 
     FROM alpine:3.20
     

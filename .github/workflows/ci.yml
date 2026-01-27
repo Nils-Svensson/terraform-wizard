@@ -129,10 +129,10 @@ jobs:
         run: go mod download
 
       - name: Go build
-        run: go build ./proxy/...
+        run: go build ./reverse-proxy/...
 
       - name: Go test
-        run: go test ./proxy/...          
+        run: go test ./reverse-proxy/...          
 
   docker-build-proxy:
     runs-on: ubuntu-latest
@@ -160,6 +160,6 @@ jobs:
       - name: Build and push docker image
         run: |
           SHA=${GITHUB_SHA::7}
-          IMAGE=europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/terraform-wizard/proxy:latest
-          docker build -t $IMAGE -f proxy/Dockerfile .
+          IMAGE=europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/terraform-wizard/reverse-proxy:latest
+          docker build -t $IMAGE -f reverse-proxy/Dockerfile .
           docker push $IMAGE        
