@@ -129,7 +129,7 @@ jobs:
         run: go mod download
 
       - name: Go build
-        run: go build ./reverse-proxy/...
+        run: go build ./reverse-proxy
 
       - name: Go test
         run: go test ./reverse-proxy/...          
