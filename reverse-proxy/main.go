@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
+	
 )
 
 const (
@@ -41,8 +41,8 @@ func proxyRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path := strings.TrimPrefix(r.URL.Path, "/api")
-	target := backendURL + path
+	
+	target := backendURL + r.URL.Path
 	if r.URL.RawQuery != "" {
 		target += "?" + r.URL.RawQuery
 	}
@@ -56,6 +56,7 @@ func proxyRequest(w http.ResponseWriter, r *http.Request) {
 		}
 		req.Header[k] = v
 	}
+
 	req.Header.Set("Authorization", "Bearer "+token)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -77,7 +78,7 @@ func proxyRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/api/", proxyRequest)
+	http.HandleFunc("/", proxyRequest)
 	log.Println("Proxy listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
