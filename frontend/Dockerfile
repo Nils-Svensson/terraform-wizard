@@ -1,6 +1,6 @@
-# ---------------------------
-# Stage 1 — Build
-# ---------------------------
+    # ---------------------------
+    # Stage 1 — Build
+    # ---------------------------
     FROM node:24-alpine AS builder
 
     WORKDIR /app
@@ -22,18 +22,22 @@
     # Stage 2 — Runtime (nginx)
     # ---------------------------
     FROM nginx:1.27-alpine
-    
-    # Remove default config
+
+        # Remove default config
     RUN rm /etc/nginx/conf.d/default.conf
-    
-    # Copy custom nginx config
-    COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
-    
-    # Copy built assets
+        
+        # Copy template, not final config
+    COPY frontend/nginx.conf.template /etc/nginx/templates/nginx.conf.template
+        
+        # Copy built assets
     COPY --from=builder /app/dist /usr/share/nginx/html
-    
-    # Cloud Run listens on 8080
+        
     EXPOSE 8080
-    
-    CMD ["nginx", "-g", "daemon off;"]
+        
+    CMD /bin/sh -c "envsubst '$PROXY_API_URL' \
+        < /etc/nginx/templates/nginx.conf.template \
+        > /etc/nginx/conf.d/default.conf \
+        && nginx -g 'daemon off;'"
+
+        
     

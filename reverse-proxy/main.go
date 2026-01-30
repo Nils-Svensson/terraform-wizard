@@ -7,12 +7,12 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	
 )
 
 const (
 	metadataURL = "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity"
-	backendURL  = "https://backend-554421324083.europe-north2.run.app"
 )
 
 func getIdentityToken(audience string) (string, error) {
@@ -35,6 +35,14 @@ func getIdentityToken(audience string) (string, error) {
 }
 
 func proxyRequest(w http.ResponseWriter, r *http.Request) {
+
+	var backendURL = os.Getenv("BACKEND_URL")
+	
+	if backendURL == "" {
+		http.Error(w, "BACKEND_URL not set", 500)
+		return
+	}
+
 	token, err := getIdentityToken(backendURL)
 	if err != nil {
 		http.Error(w, "failed to get identity token", 500)

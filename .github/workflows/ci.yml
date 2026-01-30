@@ -49,14 +49,14 @@ jobs:
             project_id: ${{ secrets.GCP_PROJECT_ID }}  
       - name: Configure Docker for Artifact Registry
         run: |
-          gcloud auth configure-docker europe-north2-docker.pkg.dev --quiet
+          gcloud auth configure-docker europe-north1-docker.pkg.dev --quiet
 
       - name: Build and push docker image
         run: |
           SHA=${GITHUB_SHA::7}
-          IMAGE=europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/terraform-wizard/backend
-          docker build -t $IMAGE -t $IMAGE:$SHA -f backend/Dockerfile .
-          docker push $IMAGE
+          IMAGE=europe-north1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/tfwizard-new-location/backend
+          docker build -t $IMAGE:latest -t $IMAGE:$SHA -f backend/Dockerfile .
+          docker push $IMAGE:latest
           docker push $IMAGE:$SHA  
       
 
@@ -104,14 +104,15 @@ jobs:
             project_id: ${{ secrets.GCP_PROJECT_ID }}  
       - name: Configure Docker for Artifact Registry
         run: |
-          gcloud auth configure-docker europe-north2-docker.pkg.dev --quiet
+          gcloud auth configure-docker europe-north1-docker.pkg.dev --quiet
 
       - name: Build and push docker image
         run: |
           SHA=${GITHUB_SHA::7}
-          IMAGE=europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/terraform-wizard/frontend:latest
-          docker build -t $IMAGE -f frontend/Dockerfile .
-          docker push $IMAGE
+          IMAGE=europe-north1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/tfwizard-new-location/frontend
+          docker build -t $IMAGE:latest -t $IMAGE:$SHA -f frontend/Dockerfile .
+          docker push $IMAGE:latest
+          docker push $IMAGE:$SHA
   
   proxy:
     name: Proxy CI
@@ -155,11 +156,12 @@ jobs:
             project_id: ${{ secrets.GCP_PROJECT_ID }}  
       - name: Configure Docker for Artifact Registry
         run: |
-          gcloud auth configure-docker europe-north2-docker.pkg.dev --quiet
+          gcloud auth configure-docker europe-north1-docker.pkg.dev --quiet
 
       - name: Build and push docker image
         run: |
           SHA=${GITHUB_SHA::7}
-          IMAGE=europe-north2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/terraform-wizard/reverse-proxy:latest
-          docker build -t $IMAGE -f reverse-proxy/Dockerfile .
-          docker push $IMAGE        
+          IMAGE=europe-north1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/tfwizard-new-location/reverse-proxy
+          docker build -t $IMAGE:latest -t $IMAGE:$SHA -f reverse-proxy/Dockerfile .
+          docker push $IMAGE:latest
+          docker push $IMAGE:$SHA       
