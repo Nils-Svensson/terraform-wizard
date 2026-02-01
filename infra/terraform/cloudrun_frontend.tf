@@ -7,7 +7,7 @@ resource "google_cloud_run_v2_service" "frontend" {
   ingress = "INGRESS_TRAFFIC_ALL"
 
   scaling {
-    max_instance_count = 4
+    max_instance_count = 3
   }
 
   template {
@@ -19,6 +19,11 @@ resource "google_cloud_run_v2_service" "frontend" {
         name  = "PROXY_API_URL"
         value = google_cloud_run_v2_service.reverse_proxy.uri
       }
+      env {
+        name  = "REDEPLOY_AT"
+        value = timestamp()
+}
+
 
       ports {
         container_port = 8080
