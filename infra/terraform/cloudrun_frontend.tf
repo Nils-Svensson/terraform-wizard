@@ -7,7 +7,7 @@ resource "google_cloud_run_v2_service" "frontend" {
   ingress = "INGRESS_TRAFFIC_ALL"
 
   scaling {
-    max_instance_count = 3
+    max_instance_count = 4
   }
 
   template {
