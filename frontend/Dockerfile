@@ -34,10 +34,10 @@
         
     EXPOSE 8080
         
-    CMD /bin/sh -c "envsubst '$PROXY_API_URL' \
-        < /etc/nginx/templates/nginx.conf.template \
+    CMD ["/bin/sh", "-c", "envsubst '${PROXY_API_URL}' \
+         < /etc/nginx/templates/nginx.conf.template \
         > /etc/nginx/conf.d/default.conf \
-        && nginx -g 'daemon off;'"
+        && nginx -g 'daemon off;'"]
 
         
     
