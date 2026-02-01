@@ -6,7 +6,8 @@ server {
 
     # ---- API proxy to Cloud Run proxy backend ----
     location /api/ {
-        proxy_pass ${PROXY_API_URL}/;
+        rewrite ^/api/(.*)$ /$1 break;
+        proxy_pass ${PROXY_API_URL};
                   
         proxy_ssl_server_name on;
 

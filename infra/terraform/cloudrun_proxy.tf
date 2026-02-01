@@ -26,3 +26,13 @@ resource "google_cloud_run_v2_service" "reverse_proxy" {
     }
   }
 }
+
+resource "google_cloud_run_v2_service_iam_member" "reverse_proxy_public" {
+  project  = var.project_id
+  location = var.region
+  name     = google_cloud_run_v2_service.reverse_proxy.name
+
+  role   = "roles/run.invoker"
+  member = "allUsers"
+}
+

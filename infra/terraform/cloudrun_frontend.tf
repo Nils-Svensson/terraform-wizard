@@ -7,7 +7,7 @@ resource "google_cloud_run_v2_service" "frontend" {
   ingress = "INGRESS_TRAFFIC_ALL"
 
   scaling {
-    max_instance_count = 3
+    max_instance_count = 4
   }
 
   template {
@@ -25,4 +25,13 @@ resource "google_cloud_run_v2_service" "frontend" {
       }
     }
   }
+}
+
+resource "google_cloud_run_v2_service_iam_member" "frontend_public" {
+  project  = var.project_id
+  location = var.region
+  name     = google_cloud_run_v2_service.frontend.name
+
+  role   = "roles/run.invoker"
+  member = "allUsers"
 }
