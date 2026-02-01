@@ -140,6 +140,14 @@ jobs:
           docker build -t $IMAGE:latest -t $IMAGE:$SHA -f frontend/Dockerfile .
           docker push $IMAGE:latest
           docker push $IMAGE:$SHA
+      - name: Deploy backend image to Cloud Run
+        run: |
+          SHA=${GITHUB_SHA::7}
+          IMAGE=europe-north1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/tfwizard-new-location/frontend:$SHA
+          gcloud run services update frontend-new \
+          --image $IMAGE \
+          --region europe-north1
+            
   
   proxy:
     name: Proxy CI
