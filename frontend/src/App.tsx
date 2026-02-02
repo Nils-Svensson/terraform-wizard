@@ -38,12 +38,9 @@ function App() {
         />
 
         
-        {/*sessionId && (
-          <div style={{ marginTop: 30 }}>
-            <h2>Session Created</h2>
-            <p><strong>ID:</strong> {sessionId}</p>
-          </div>
-        )*/}
+        
+         
+        
       </div>
 
       {/* GRAPH PANEL */}

@@ -12,6 +12,8 @@ resource "google_cloud_run_v2_service" "frontend" {
 
   template {
 
+    service_account = google_service_account.frontend_runtime.email
+
     containers {
       image = var.frontend_image
 
@@ -19,10 +21,6 @@ resource "google_cloud_run_v2_service" "frontend" {
         name  = "PROXY_API_URL"
         value = google_cloud_run_v2_service.reverse_proxy.uri
       }
-      env {
-        name  = "REDEPLOY_AT"
-        value = timestamp()
-}
 
 
       ports {
