@@ -3,6 +3,7 @@ const ALL_CATEGORIES = [
   "networking",
   "storage",
   "data",
+  "machine_learning",
   "iam",
   "security",
   "observability",
@@ -21,7 +22,7 @@ export function GraphToolbar({ activeCategories, onToggleCategory }: Props) {
   return (
     <div className="toolbar">
       {ALL_CATEGORIES.map(cat => (
-        <label key={cat}>
+        <label key={cat} className="toolbar-item">
           <input
             type="checkbox"
             checked={activeCategories.has(cat)}
@@ -30,6 +31,18 @@ export function GraphToolbar({ activeCategories, onToggleCategory }: Props) {
           {cat}
         </label>
       ))}
+
+      <span className="info-icon">
+        i
+        <span className="tooltip">
+          The filter has basic support for providers
+          <br />
+          GCP, AWS, and Azure for now.
+        </span>
+      </span>
     </div>
   );
 }
+
+
+

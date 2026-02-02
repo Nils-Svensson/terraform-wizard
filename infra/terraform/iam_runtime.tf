@@ -19,3 +19,20 @@ resource "google_service_account_iam_member" "gha_act_as_frontend" {
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${data.google_service_account.github_actions.email}"
 }
+
+resource "google_service_account_iam_member" "gha_act_as_reverse_proxy" {
+  service_account_id = data.google_service_account.reverse_proxy.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${data.google_service_account.github_actions.email}"
+}
+
+resource "google_service_account" "backend_runtime" {
+  account_id   = "backend-runtime"
+  display_name = "Backend Cloud Run runtime service account"
+}
+
+resource "google_service_account_iam_member" "gha_act_as_backend" {
+  service_account_id = google_service_account.backend_runtime.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${data.google_service_account.github_actions.email}"
+}

@@ -173,13 +173,12 @@ export default function GraphWindow({
   type Highlight = "selected" | "connected" | "dimmed";
 
   
+  const highlightedNodes = useMemo(
+    () => ({ selected, connected }),
+    [selected, connected]
+  );
   
-
-
   
-
-  
-  const highlightedNodes = { selected, connected }; //something about useMemo here causes issues
   const styledNodes = useMemo(() => {
     return nodes.map(node => {
       let highlightState: Highlight = "dimmed";

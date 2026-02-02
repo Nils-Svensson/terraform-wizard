@@ -42,3 +42,46 @@ body {
 .react-flow__controls-button svg {
   color: #e5e7eb !important; /* THIS is the key */
 }
+
+
+.info-icon {
+  display: inline-block;   /* important */
+  margin-left: 8px;
+  position: relative;
+
+  width: 16px;
+  height: 16px;
+  font-size: 12px;
+  border-radius: 50%;
+  border: 1px solid #64748b;
+  color: #cbd5f5;
+  text-align: center;
+  line-height: 14px;
+  cursor: help;
+}
+
+
+.tooltip {
+  position: absolute;
+  top: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #020617;
+  color: #e5e7eb;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  border: 1px solid #334155;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 20;
+  white-space: nowrap;
+}
+
+.info-icon:hover .tooltip {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+

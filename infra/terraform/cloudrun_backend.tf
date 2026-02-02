@@ -9,6 +9,9 @@ resource "google_cloud_run_v2_service" "backend" {
   }
 
   template {
+
+    service_account = google_service_account.backend_runtime.email
+
     containers {
       image = var.backend_image
 
