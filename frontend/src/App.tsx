@@ -29,24 +29,24 @@ function App() {
           overflowY: "auto",
         }}
       >
-        <h1 style={{ marginBottom: 20 }}>Terraform Wizard</h1>
+        <h1 style={{ marginBottom: 10 }}>Terraform Wizard</h1>
 
         <div
   style={{
     marginBottom: "20px",
     padding: "12px",
-    border: "1px solid #334155",
+    border: "1px solidrgb(92, 111, 137)",
     borderRadius: "8px",
-    background: "#020617",
+    background: "#0b1220",
     fontSize: "0.9rem",
     color: "#cbd5f5",
   }}
 >
   <strong>Preview version</strong>
   <div style={{ marginTop: "6px", lineHeight: 1.4 }}>
-    Terraform Wizard is under active development.
+    Terraform Wizard is under active development, with more features on the way.
     <br />
-    Core functionality works, but may be a bit rough around the edges.
+    The app is fully functional, but may be a bit rough around the edges.
   </div>
 </div>
 

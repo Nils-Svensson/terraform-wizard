@@ -7,7 +7,7 @@ www.tfwizard.com
 Terraform Wizard is a web application that generates **interactive diagrams from Terraform files**, allowing users to **visualize and explore cloud infrastructure** quickly. 
 While this is still very much a hobby project, the goal is to help developers, architects, and SREs gain a better understanding of their infrastructure, dependencies, and resource distribution.
 
->  Note: This project is still under active development and more features will be added. The core functionality is working, but there are some areas such as node UI and layout algorithms that still need improvement.
+>  Note: This project is under active development. The main features are functional and usable, though some areas such as node UI and layout algorithms are still being refined.
 
 ---
 
