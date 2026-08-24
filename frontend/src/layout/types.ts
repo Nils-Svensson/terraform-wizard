@@ -17,4 +17,27 @@ export interface LayoutNode {
     >;
   }
 
+  export type LayoutFn = (
+    nodes: LayoutNode[],
+    analysis: {
+      traversalData: Record<string, TraversalData>;
+      degree: Record<string, number>;
+      orphanNodes: string[];
+      roots: Record<string, string[]>;
+      totalNodes: number;
+      nodesByComponent: Record<string, number>;
+      components: Record<string, string[]>;
+      maxDepth: Record<string, number>;
+      parents: Record<string, string[]>;
+
+    },
+
+    viewport: { 
+        width: number; 
+        height: number; 
+    }
+  ) => LayoutResult;
+  
+
+  
 

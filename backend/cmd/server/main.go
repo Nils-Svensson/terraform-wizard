@@ -51,6 +51,7 @@ func main() {
 	// Initialize handlers
 	uploadHandler := api.NewUploadHandler(ingestService, memStorage)
 	graphHandler := api.NewGraphHandler(buildService, memStorage)
+	cloneHandler := api.NewCloneHandler(ingestService, memStorage)
 	//statsHandler := api.NewStatsHandler(memStorage)    to-do
 
 	// Set up router
@@ -71,6 +72,7 @@ func main() {
 	// Upload endpoints
 	mux.HandleFunc("/upload", uploadHandler.UploadTerraform)
 	mux.HandleFunc("/clear", uploadHandler.ClearSession)
+	mux.HandleFunc("/clone", cloneHandler.CloneRepo)
 
 	// Graph & stats endpoints
 	mux.HandleFunc("/graph", graphHandler.BuildGraph)

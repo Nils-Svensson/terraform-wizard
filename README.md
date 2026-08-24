@@ -1,53 +1,56 @@
-# Terraform Wizard
+# tfwizard
 
 **Interactive infrastructure visualization from Terraform files**
 
 www.tfwizard.com
 
-Terraform Wizard is a web application that generates **interactive diagrams from Terraform files**, allowing users to **visualize and explore cloud infrastructure** quickly. 
-While this is still very much a hobby project, it’s intended to help developers, architects, and others better understand their infrastructure, dependencies, and resource distribution.
->  Note: This project is under active development.
+tfwizard is a web application that generates **interactive diagrams from Terraform files**, allowing you to **visualize and explore cloud infrastructure** at a glance. Load any Terraform repository — local or from GitHub — and instantly see your resources, their dependencies, and how they relate to each other.
+
+> Note: This project is under active development.
+
 ---
 
-![Terraform Wizard Screenshot](https://github.com/user-attachments/assets/41780c63-5b17-4bb8-af42-eeb3ffe02fa8)
+![tfwizard Screenshot](frontend/examples/example1.png)
 
+---
 
 ## Features
 
-- Interactive diagrams generated from one or several Terraform files
-- Dependency mapping between resources
-- Filtering by resource category (compute, storage, networking, etc.); currently includes basic support for GCP, AWS and Azure
+### Visualization
+- **Two layout modes** — DAG (hierarchical, depth-based) and Radial (circular, component-centric)
+- **Dependency edges** — directed arrows show which resources depend on which
+- **Blast radius** — click any node to highlight all resources it affects transitively
+- **Module expansion** — expand Terraform module nodes to inspect their internal resources inline
 
----
 
-## Roadmap / Coming Soon
-
-- Blast radius visualization for resource impact analysis
-- Alternative layout algorithms for diagrams
-- Grouping resources by category
-- GitHub repository sync for automated Terraform diagram updates
-- And more...
+### Navigation & filtering
+- **Search** — filter the graph to matching resources in real time
+- **Category filter** — highlight resources by category (compute, storage, networking, database, serverless, IAM, and more) across AWS, GCP, and Azure
+- **Dark / light theme** toggle
 
 ---
 
 ## Architecture & CI/CD
 
-Terraform Wizard is structured as **three services**:
+tfwizard is structured as **three services**:
 
-1. **Frontend** – React/TypeScript single-page application  
-2. **Backend** – Go API handling Terraform parsing, graph building and graph analysis  
-3. **Proxy** – Go service that authenticates and forwards requests to an IAM-protected backend using Google Cloud identity tokens  
+1. **Frontend** — React / TypeScript SPA (XYFlow for graph rendering, Tailwind for styling)
+2. **Backend** — Go API handling Terraform parsing, graph construction, and analysis
+3. **Proxy** — Go service that authenticates and forwards requests to an IAM-protected backend using Google Cloud identity tokens
 
-All services are containerized with **Docker** and deployed to **Google Cloud Run**.  
+All services are containerized with **Docker** and deployed to **Google Cloud Run**.
 
 The project includes a **fully automated CI/CD pipeline** powered by **GitHub Actions**:
 
-- Builds, tests, containerizes and deploys services on code push
-- Pushes Docker images to **Artifact Registry** 
+- Builds, tests, containerizes, and deploys services on every push
+- Pushes Docker images to **Artifact Registry**
 - Deploys only services that changed using **path-based filtering**
 - Manages infrastructure as code via **Terraform**
-- Enables rapid iteration while maintaining reproducible deployments
-
-> Note: The test coverage is currently a bit light. Will add more soon.
 
 ---
+
+## Roadmap
+
+- Stats panel — resource counts, depth distribution, component breakdown
+- Diff view — compare two snapshots of the same infrastructure over time
+- World map — visualize resource distribution by cloud region

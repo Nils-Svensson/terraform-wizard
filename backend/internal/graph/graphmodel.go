@@ -9,8 +9,8 @@ type Node struct {
 	Type     string                  `json:"type"`
 	Name     string                  `json:"name"`
 	Provider string                  `json:"provider"`
-	//Region   string                 `json:"region"`
 	Attr     map[string]string       `json:"attr,omitempty"`
+	DisplayName string               `json:"displayname,omitempty"`
 
 	InstanceCount   *int 			 `json:"instancecount"`
 	ForEach         bool 			 `json:"foreach"`
@@ -18,6 +18,10 @@ type Node struct {
 
 	Category model.ResourceCategory  `json:"category"`
 	Location *model.ResourceLocation `json:"location,omitempty"`
+
+	ModulePath string 				 `json:"modulepath,omitempty"`
+	FilePath   string 				 `json:"filepath,omitempty"`
+	LineNumber int					 `json:"line,omitempty"`
 }
 
 type Edge struct {
@@ -52,13 +56,15 @@ func (g *Graph) AddNode(r *model.Resource) {
 		Type:            r.Type,
 		Name:            r.Name,
 		Provider:        r.Provider,
-		//Region:          r.Region,
+		DisplayName:     r.DisplayName,
 		Attr:            r.Attributes,
 		OccurrenceCount: 1,
 		InstanceCount:   r.DeclaredCount,
 		ForEach:         r.ForEach,
 		Category:        r.Category,
-		Location:		 r.Location,
+		Location:        r.Location,
+		FilePath:        r.FilePath,
+		LineNumber:      r.LineNumber,
 	})
 }
 

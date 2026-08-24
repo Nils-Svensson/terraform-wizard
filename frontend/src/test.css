@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+
+  --color-secondary: rgb(var(--secondary));
+  --color-secondary-foreground: rgb(var(--secondary-foreground));
+
+  --color-accent: rgb(var(--accent));
+  --color-accent-foreground: rgb(var(--accent-foreground));
+
+  --color-destructive: rgb(var(--destructive));
+
+  --color-border: rgb(var(--border));
+  --color-input: rgb(var(--input));
+  --color-ring: rgb(var(--ring));
+}
+
+
+:root {
+  /*font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #131313;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;*/
+
+--primary: 147 51 234;
+--primary-foreground: 255 255 255;
+
+--destructive: 220 38 38;
+
+--background: 15 23 42;
+--foreground: 229 231 235;
+
+--secondary: 30 41 59;
+--secondary-foreground: 229 231 235;
+
+--accent: 51 65 85;
+--accent-foreground: 255 255 255;
+
+--border: 51 65 85;
+--input: 30 41 59;
+--ring: 147 51 234;
+
+}

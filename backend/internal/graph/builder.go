@@ -23,7 +23,7 @@ func (b *Builder) Build(resources []*model.Resource) *Graph {
 
 	fmt.Println("BUILD INPUT COUNT:", len(resources))
 	for _, r := range resources {
-		fmt.Println("RESOURCE:", r.ID, r.Type, r.Name, r.DeclaredCount, r.Region)
+		fmt.Println("RESOURCE:", r.Name, r.DisplayName)
 		if r.DeclaredCount != nil {
 			fmt.Println("DeclaredCount value:", *r.DeclaredCount)
 		}
@@ -34,14 +34,14 @@ func (b *Builder) Build(resources []*model.Resource) *Graph {
 
 	// 1. Add nodes
 	for _, r := range resources {
-		if reg := b.registryManager.Get(r.Provider); reg != nil {
+		if r.Type == "module" {
+			r.Category = model.Module
+		} else if reg := b.registryManager.Get(r.Provider); reg != nil {
 			r.Category = reg.GetResourceCategory(r.Type)
 		} else {
 			r.Category = model.Other
-
 		}
 		g.AddNode(r)
-		fmt.Println("Category: ", r.Category)
 	}
 
 	// 2. Add basic dependency edges

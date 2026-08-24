@@ -6,6 +6,7 @@ categories:
     - google_compute_instance_group
     - google_container_
     - google_cloud_run_
+    - google_cloud_run_v2_
     - google_app_engine_
 
   networking:
@@ -33,6 +34,7 @@ categories:
     - google_persistent_disk_
     - google_spanner_
     - google_bigtable_
+    - google_sql_database
     - google_sql_database_instance
     - google_firestore_
     - google_memorystore_
@@ -47,7 +49,8 @@ categories:
     - google_dataflow_
     - google_pubsub_
     - google_sql_
-    - 
+    - google_datastream_
+    - google_dataplex_
 
   iam:
     - google_iam_
@@ -57,6 +60,17 @@ categories:
     - google_billing_account_iam_
     - google_organization_iam_
     - google_folder_iam_
+    - google_cloud_identity_group_
+    - google_cloud_identity_group_membership_
+    - google_iam_workload_identity_pool_
+    - google_iam_workload_identity_pool_provider_
+    - google_cloud_run_v2_service_iam_
+    - google_app_engine_iam_
+    - google_cloud_run_service_iam_
+    - google_kms_crypto_key_iam_
+    - google_kms_key_ring_iam_
+    - google_secret_manager_secret_iam_
+    - google_project_iam_audit_config
 
   observability:
     - google_logging_
@@ -93,7 +107,7 @@ categories:
     - google_data_loss_prevention_
     - google_identity_platform_
 
-  machine_learning:
+  ai:
     - google_ai_platform_
     - google_vertex_ai_
     - google_automl_

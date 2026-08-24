@@ -1,68 +1,222 @@
+
+@import "tailwindcss";
+
+/* Make Tailwind's dark: variant respond to data-theme="dark" on <html> */
+@custom-variant dark (&:where([data-theme=dark] *), &:is([data-theme=dark]));
+
+@theme inline {
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+
+  --color-secondary: rgb(var(--secondary));
+  --color-secondary-foreground: rgb(var(--secondary-foreground));
+
+  --color-accent: rgb(var(--accent));
+  --color-accent-foreground: rgb(var(--accent-foreground));
+
+  --color-destructive: rgb(var(--destructive));
+
+  --color-border: rgb(var(--border));
+  --color-input: rgb(var(--input));
+  --color-ring: rgb(var(--ring));
+}
+
+/* ── Dark theme (default) ──────────────────────────────────────────────────── */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* Tailwind semantic tokens */
+  --primary: 147 51 234;
+  --primary-foreground: 255 255 255;
+  --destructive: 220 38 38;
+  --background: 15 23 42;
+  --foreground: 229 231 235;
+  --secondary: 30 41 59;
+  --secondary-foreground: 229 231 235;
+  --accent: 51 65 85;
+  --accent-foreground: 255 255 255;
+  --border: 51 65 85;
+  --input: 30 41 59;
+  --ring: 147 51 234;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Node / canvas component tokens */
+  --node-bg: #3360a0;        /* fill for both rectangular and circular nodes */
+  --node-surface: #264f88;
+  --node-surface-raised: #415a77;
+  --node-border: #334155;
+  --node-text: #e5e7eb;
+  --node-text-muted: #bbc4d1;
+  --node-text-detail: #cbd5f5;
+  --node-badge-bg: #1e293b;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --mod-accent: #f59e0b;
+  --mod-text: #fcd34d;
+  --mod-badge-bg: #78350f;
+  --mod-badge-text: #fcd34d;
+  --mod-container-bg: rgba(120, 53, 15, 0.06);
+  --mod-header-border: rgba(245, 158, 11, 0.25);
+  --mod-btn-bg: rgba(120, 53, 15, 0.2);
+  --mod-btn-bg-active: rgba(120, 53, 15, 0.4);
+  --mod-btn-border: #92400e;
+  --mod-source-text: rgba(251, 191, 36, 0.5);
+
+  --canvas-bg: #20263d;
+  --edge-color: #bfdcdc;
+  --minimap-bg: #26314e;
+  --minimap-mask: rgba(0, 0, 0, 0.6);
+  --minimap-border: rgba(139, 92, 246, 0.2);
+  --minimap-node-normal: #9dabc1;
+  --minimap-node-dimmed: #1e293b;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+/* ── Light theme ───────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  /* Tailwind semantic tokens */
+  --primary: 109 40 217;
+  --primary-foreground: 255 255 255;
+  --destructive: 220 38 38;
+  --background: 248 250 252;
+  --foreground: 15 23 42;
+  --secondary: 241 245 249;
+  --secondary-foreground: 15 23 42;
+  --accent: 226 232 240;
+  --accent-foreground: 15 23 42;
+  --border: 226 232 240;
+  --input: 241 245 249;
+  --ring: 109 40 217;
+
+  /* Node / canvas component tokens */
+  --node-bg: #fff982;        
+  --node-surface: #fff99eec;
+  --node-surface-raised: #fefae0;
+  --node-border: #e2e8f0;
+  --node-text: #0f172a;
+  --node-text-muted: #64748b;
+  --node-text-detail: #475569;
+  --node-badge-bg: #f1f5f9;
+
+  --mod-accent: #d87403;
+  --mod-text: #78350f;
+  --mod-badge-bg: #fef3c7;
+  --mod-badge-text: #78350f;
+  --mod-container-bg: rgba(253, 230, 138, 0.2);
+  --mod-header-border: rgba(217, 119, 6, 0.3);
+  --mod-btn-bg: rgba(253, 230, 138, 0.5);
+  --mod-btn-bg-active: rgba(253, 230, 138, 0.75);
+  --mod-btn-border: #d97706;
+  --mod-source-text: rgba(180, 84, 10, 0.6);
+
+  --canvas-bg: #e9ebf0;
+  --edge-color: #5c708d;
+  --minimap-bg: #aaaeb8;
+  --minimap-mask: #e8eaef;
+  --minimap-border: rgba(109, 40, 217, 0.2);
+  --minimap-node-normal: #cbd5e1;
+  --minimap-node-dimmed: #e2e8f0;
 }
-a:hover {
-  color: #535bf2;
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  font-family: Inter, sans-serif;
+  background: var(--canvas-bg);
+  color: var(--node-text);
+  overflow: hidden;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
+/* XYFlow Controls */
+.react-flow__controls {
+  background: var(--node-surface-raised) !important;
+  border: 1px solid var(--node-border) !important;
   border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+.react-flow__controls-button {
+  background: var(--node-badge-bg) !important;
+  color: var(--node-text) !important;
+  border: 1px solid var(--node-border) !important;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--node-border) !important;
+}
+
+.react-flow__controls-button svg {
+  color: var(--node-text) !important;
+}
+
+.info-icon {
+  display: inline-block;
+  margin-left: 8px;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  font-size: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--node-text-muted);
+  color: var(--node-text-muted);
+  text-align: center;
+  line-height: 14px;
+  cursor: default;
+}
+
+.tooltip {
+  position: absolute;
+  top: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--node-surface);
+  color: var(--node-text);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  border: 1px solid var(--node-border);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 20;
+  white-space: nowrap;
+}
+
+.info-icon:hover .tooltip {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.layout-select {
+  margin-left: 12px;
+  background: var(--node-badge-bg);
+  color: var(--node-text);
+  border: 1px solid var(--node-border);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+@layer base {
+  *, ::before, ::after {
+    border-width: 0;
   }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+}
+
+/* XYFlow dark colorMode injects its own background on .react-flow — override it */
+.react-flow {
+  background: var(--canvas-bg) !important;
+}
+
+.react-flow__edge-path {
+  stroke: var(--edge-color);
+  stroke-width: 1.5;
+}
+
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke-width: 2.5;
 }

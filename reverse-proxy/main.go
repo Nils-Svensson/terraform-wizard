@@ -34,10 +34,30 @@ func getIdentityToken(audience string) (string, error) {
 	return string(b), nil
 }
 
+// allowedRoutes maps each permitted path to its required HTTP method.
+// The path check runs before the metadata call so we never mint a token
+// for a request we will reject.
+var allowedRoutes = map[string]string{
+	"/upload":  http.MethodPost,
+	"/clone":   http.MethodPost,
+	"/graph":   http.MethodGet,
+	"/healthz": http.MethodGet,
+}
+
 func proxyRequest(w http.ResponseWriter, r *http.Request) {
+	allowedMethod, ok := allowedRoutes[r.URL.Path]
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	if r.Method != allowedMethod {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 
 	var backendURL = os.Getenv("BACKEND_URL")
-	
+
 	if backendURL == "" {
 		http.Error(w, "BACKEND_URL not set", 500)
 		return
@@ -55,6 +75,7 @@ func proxyRequest(w http.ResponseWriter, r *http.Request) {
 		target += "?" + r.URL.RawQuery
 	}
 
+	
 	body, _ := io.ReadAll(r.Body)
 	req, _ := http.NewRequest(r.Method, target, bytes.NewReader(body))
 

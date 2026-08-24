@@ -23,13 +23,13 @@
     # ---------------------------
     FROM nginx:1.27-alpine
 
-        # Remove default config
+    # Remove default config
     RUN rm /etc/nginx/conf.d/default.conf
         
-        # Copy template, not final config
+    # Copy template, not final config
     COPY frontend/nginx.conf.template /etc/nginx/templates/nginx.conf.template
         
-        # Copy built assets
+    # Copy built assets
     COPY --from=builder /app/dist /usr/share/nginx/html
         
     EXPOSE 8080

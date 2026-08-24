@@ -1,21 +1,86 @@
+# Bot / scanner detection
+map $http_user_agent $is_bot {
+    default     0;
+    ""          1;
+    ~*(?i)(curl|wget|python-requests|python-urllib|scrapy|masscan|nikto|nmap|zgrab|dirbuster|gobuster|nuclei|sqlmap|libwww|libwww-perl|lwp-trivial|java|ruby|perl) 1;
+}
+
+# 30 req/min per IP across all API paths
+limit_req_zone $binary_remote_addr zone=api:10m rate=30r/m;
+
 server {
     listen 8080;
 
-    root /usr/share/nginx/html;
+    root  /usr/share/nginx/html;
     index index.html;
 
-    # ---- API proxy to Cloud Run proxy backend ----
-    location /api/ {
-        proxy_pass ${PROXY_API_URL}/;
-                  
+    add_header X-Content-Type-Options    "nosniff"                          always;
+    add_header X-Frame-Options           "DENY"                             always;
+    add_header Referrer-Policy           "strict-origin-when-cross-origin"  always;
+
+    # ---- POST /api/upload ----
+    location = /api/upload {
+        if ($is_bot)  { return 403; }
+        limit_req zone=api burst=5 nodelay;
+        limit_except POST { return 405; }
+        client_max_body_size 20m;
+
+        proxy_pass         ${PROXY_API_URL}/upload;
         proxy_ssl_server_name on;
-
-        proxy_set_header Host $proxy_host;
-        proxy_set_header X-Forwarded-Proto https;
-        proxy_set_header X-Forwarded-For $remote_addr;
-
+        proxy_set_header   Host               $proxy_host;
+        proxy_set_header   X-Forwarded-Proto  https;
+        proxy_set_header   X-Forwarded-For    $remote_addr;
         proxy_connect_timeout 30s;
-        proxy_read_timeout 300s;
+        proxy_read_timeout    300s;
+    }
+
+    # ---- POST /api/clone ----
+    location = /api/clone {
+        if ($is_bot)  { return 403; }
+        limit_req zone=api burst=3 nodelay;
+        limit_except POST { return 405; }
+        client_max_body_size 1k;
+
+        proxy_pass         ${PROXY_API_URL}/clone;
+        proxy_ssl_server_name on;
+        proxy_set_header   Host               $proxy_host;
+        proxy_set_header   X-Forwarded-Proto  https;
+        proxy_set_header   X-Forwarded-For    $remote_addr;
+        proxy_connect_timeout 30s;
+        proxy_read_timeout    120s;
+    }
+
+    # ---- GET /api/graph ----
+    location = /api/graph {
+        if ($is_bot)  { return 403; }
+        limit_req zone=api burst=10 nodelay;
+        limit_except GET { return 405; }
+
+        proxy_pass         ${PROXY_API_URL}/graph;
+        proxy_ssl_server_name on;
+        proxy_set_header   Host               $proxy_host;
+        proxy_set_header   X-Forwarded-Proto  https;
+        proxy_set_header   X-Forwarded-For    $remote_addr;
+        proxy_connect_timeout 30s;
+        proxy_read_timeout    300s;
+    }
+
+    # ---- GET /api/healthz ----
+    location = /api/healthz {
+        limit_except GET { return 405; }
+
+        proxy_pass         ${PROXY_API_URL}/healthz;
+        proxy_ssl_server_name on;
+        proxy_set_header   Host               $proxy_host;
+        proxy_set_header   X-Forwarded-Proto  https;
+        proxy_set_header   X-Forwarded-For    $remote_addr;
+        proxy_connect_timeout 30s;
+        proxy_read_timeout    30s;
+    }
+
+    # ---- Block all other /api/* ----
+    location /api/ {
+        return 404;
     }
 
     # ---- SPA routing ----

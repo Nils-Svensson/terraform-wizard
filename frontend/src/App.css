@@ -1,9 +1,5 @@
 /* RESET */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+
 
 html,
 body,
@@ -84,4 +80,11 @@ body {
   pointer-events: auto;
 }
 
-
+.layout-select {
+  margin-left: 12px;
+  background: #1e293b;
+  color: white;
+  border: 1px solid #334155;
+  padding: 4px 8px;
+  border-radius: 6px;
+}

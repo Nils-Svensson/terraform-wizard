@@ -17,6 +17,19 @@ func New(parser *parser.Service) *Service {
 	return &Service{parser: parser}
 }
 
+// ProcessRaw parses pre-read file contents. Keys are relative file paths.
+func (s *Service) ProcessRaw(files map[string][]byte) ([]*model.Resource, error) {
+	var all []*model.Resource
+	for name, content := range files {
+		resources, err := s.parser.Parse(content, name)
+		if err != nil {
+			return nil, fmt.Errorf("parse %s: %w", name, err)
+		}
+		all = append(all, resources...)
+	}
+	return all, nil
+}
+
 func (s *Service) ProcessFiles(files []*multipart.FileHeader) ([]*model.Resource, error) {
 	var all []*model.Resource
 

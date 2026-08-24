@@ -2,8 +2,7 @@ package storage
 
 import (
 	"sync"
-
-	"github.com/google/uuid"
+	"uuid"
 
 	"github.com/Nils-Svensson/terraform-wizard/backend/pkg/model"
 )

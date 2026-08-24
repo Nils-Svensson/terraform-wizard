@@ -35,6 +35,34 @@ func (s *Service) Parse(content []byte, filename string) ([]*model.Resource, err
 	var resources []*model.Resource
 
 	for _, block := range body.Blocks {
+		// ── Module blocks ──────────────────────────────────────────────
+		if block.Type == "module" {
+			if len(block.Labels) < 1 {
+				continue
+			}
+			moduleName := block.Labels[0]
+			r := &model.Resource{
+				ID:          fmt.Sprintf("module.%s", moduleName),
+				Type:        "module",
+				Name:        moduleName,
+				Provider:    "module",
+				Attributes:  map[string]string{},
+				DependsOn:   []string{},
+				Expressions: map[string]hcl.Expression{},
+				FilePath:    filename,
+				LineNumber:  block.TypeRange.Start.Line,
+			}
+			collectExpressionsFromBody(block.Body, r.Expressions)
+			collectAttributes(block.Body, content, "", r.Attributes)
+			// Use the source path as the display name
+			if src, ok := r.Attributes["source"]; ok {
+				r.DisplayName = strings.Trim(src, `"`)
+			}
+			resources = append(resources, r)
+			continue
+		}
+
+		// ── Resource / data blocks ─────────────────────────────────────
 		if block.Type != "resource" && block.Type != "data" {
 			continue
 		}
@@ -46,6 +74,7 @@ func (s *Service) Parse(content []byte, filename string) ([]*model.Resource, err
 		resourceType := block.Labels[0]
 		resourceName := block.Labels[1]
 		provider := extractProvider(resourceType)
+		
 
 		r := &model.Resource{
 			ID:          fmt.Sprintf("%s.%s", resourceType, resourceName),
@@ -57,6 +86,8 @@ func (s *Service) Parse(content []byte, filename string) ([]*model.Resource, err
 			Expressions: map[string]hcl.Expression{},
 			ForEach:     false,
 			Location:    nil,
+			FilePath:    filename,
+			LineNumber:  block.TypeRange.Start.Line,
 		}
 
 		// Collect ALL expressions recursively
@@ -83,25 +114,23 @@ func (s *Service) Parse(content []byte, filename string) ([]*model.Resource, err
 			}
 		}
 		
+		// display name, try several common attribute names.
+		// remember to change the rest of the code too.
+		nameAttr := []string{
+			"name",
+			"resource_name",
+			"resource_id",
+			"display_name",
+			"id",
+		}
 
-
-		// Extract top-level attributes only
-		/*for key, attr := range block.Body.Attributes {
-			val, diag := attr.Expr.Value(nil)
-			if !diag.HasErrors() {
-				var out interface{}
-				if err := gocty.FromCtyValue(val, &out); err == nil {
-					r.Attributes[key] = out
-
-					if key == "region" {
-						if str, ok := out.(string); ok {
-							r.Region = str
-						}
-					}
-				}
+		for _, n := range nameAttr {
+			if v, ok := r.Attributes[n]; ok {
+				s := strings.Trim(v, `"`)
+				r.DisplayName = s
+				break
 			}
-		}*/
-
+		}
 		// count
 		if countAttr, exists := block.Body.Attributes["count"]; exists {
 			val, diag := countAttr.Expr.Value(nil)
@@ -116,9 +145,6 @@ func (s *Service) Parse(content []byte, filename string) ([]*model.Resource, err
 			r.ForEach = true
 		}
 
-		if r.Region == "" {
-			r.Region = findRegionInProviders(body)
-		}
 
 		resources = append(resources, r)
 	}
@@ -226,19 +252,29 @@ func (s *Service) detectDependencies(resources []*model.Resource) {
 			traversals := expr.Variables()
 
 			for _, tr := range traversals {
-				if id := extractResourceID(tr); id != "" && resourceIndex[id] {
+				id := extractResourceID(tr)
+				if id == "" {
+					continue
+				}
+				if resourceIndex[id] {
 					res.DependsOn = append(res.DependsOn, id)
 				}
+				// TODO(silent-drop): if id is not in resourceIndex (e.g. a module
+				// reference where the module block was never declared in any parsed
+				// file), the dependency is silently dropped here. This can hide
+				// dangling references that are bugs in the Terraform configuration.
+				// To surface them, add an UnresolvedDependencies []string field to
+				// model.Resource and append id here instead of discarding it.
 			}
 		}
 	}
 }
 
 // extractResourceID tries to convert a traversal like:
-// aws_instance.web.id  -> aws_instance.web
-// aws_vpc.main         -> aws_vpc.main
-// module.network.vpc   -> ""   (not a resource)
-// var.region           -> ""   (ignore variables)
+// aws_instance.web.id       -> aws_instance.web
+// aws_vpc.main              -> aws_vpc.main
+// module.network.vpc_id     -> module.network  (module reference; output attr is stripped)
+// var.region                -> ""              (ignore variables)
 
 // !!!NOTE: needs to be modified to address more complex expressions!!!
 func extractResourceID(tr hcl.Traversal) string {

@@ -5,14 +5,18 @@ categories:
     - aws_instance
     - aws_launch_template
     - aws_autoscaling_
+    - aws_appautoscaling_
     - aws_ec2_
     - aws_eks_
     - aws_ecs_
+    - aws_ecr_
     - aws_lambda_
     - aws_batch_
     - aws_app_runner_
     - aws_elastic_beanstalk_
     - aws_lightsail_
+    - aws_sfn_
+    - aws_states_
 
   networking:
     - aws_vpc
@@ -33,6 +37,10 @@ categories:
     - aws_elb_
     - aws_globalaccelerator_
     - aws_network_interface
+    - aws_cloudfront_
+    - aws_api_gateway_
+    - aws_apigatewayv2_
+    - aws_appsync_
 
   storage:
     - aws_s3_
@@ -56,6 +64,19 @@ categories:
     - aws_opensearch_
     - aws_elasticsearch_
     - aws_emr_
+    - aws_elasticache_
+    - aws_dax_
+    - aws_timestream_
+
+  messaging:
+    - aws_sns_
+    - aws_sqs_
+    - aws_ses_
+    - aws_pinpoint_
+    - aws_mq_
+    - aws_events_
+    - aws_scheduler_
+    - aws_pipes_
 
   iam:
     - aws_iam_
@@ -64,16 +85,16 @@ categories:
     - aws_servicecatalog_
     - aws_sso_
     - aws_identitystore_
+    - aws_ssm_
 
   observability:
     - aws_cloudwatch_
     - aws_logs_
     - aws_xray_
-    - aws_opensearch_
-    - aws_elasticsearch_
     - aws_synthetics_
+    - aws_config_
 
-  dns: # arguably networking
+  dns:
     - aws_route53_
     - aws_route53domains_
 
@@ -89,8 +110,10 @@ categories:
     - aws_inspector_
     - aws_detective_
     - aws_iam_access_analyzer_
+    - aws_acm_
+    - aws_networkfirewall_
 
-  machine_learning:
+  ai:
     - aws_sagemaker_
     - aws_comprehend_
     - aws_rekognition_
@@ -100,6 +123,7 @@ categories:
     - aws_polly_
     - aws_forecast_
     - aws_personalize_
+    - aws_bedrock_
 
   billing:
     - aws_budgets_

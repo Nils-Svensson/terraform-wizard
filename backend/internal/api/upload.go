@@ -7,10 +7,10 @@ import (
 	"path"
 	"strings"
 
+	"uuid"
+
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/ingest"
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/storage"
-
-	"github.com/google/uuid"
 )
 
 type UploadHandler struct {

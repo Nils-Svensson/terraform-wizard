@@ -15,8 +15,15 @@ type TraversalData struct {
 }
 
 type GraphAnalysis struct {
-	TraversalData map[string]TraversalData `json:"traversalData"` // keyed by nodeID
-	Degree 	  	  map[string]int           `json:"degree"`        // keyed by nodeID
+	TraversalData     map[string]TraversalData `json:"traversalData"` // keyed by nodeID
+	Degree 	  	      map[string]int           `json:"degree"`        // keyed by nodeID
+	OrphanNodes       []string                 `json:"orphanNodes"`   // list of nodeIDs with no connections
+	Roots 		      map[string][]string      `json:"roots"`         // keyed by componentID, values are nodeIDs of root nodes in that component
+	TotalNodes 	  	  int                      `json:"totalNodes"`    // total number of nodes in the graph
+	NodesPerComponent map[string]int    	   `json:"nodesByComponent"` // keyed by componentID, values are number of nodes in that component
+	Components		  map[string][]string      `json:"components"`     // keyed by componentID, values
+	MaxDepth		  map[string]int		   `json:"maxDepth"`       // keyed by componentID, values are max depth of that component  
+	Parents 		  map[string][]string      `json:"parents"`        // keyed by nodeID, values are nodeIDs of parent nodes (nodes that point to this node)   
 }
 
 // BuildAdjacency constructs forward and reverse adjacency lists from the graph.
@@ -34,13 +41,12 @@ func BuildAdjacency(g *Graph) (map[string][]string, map[string][]string) {
 		forward[e.From] = append(forward[e.From], e.To) // Appends nodes reachable from 'e.From' to the slice
 		reverse[e.To] = append(reverse[e.To], e.From)   // Appends nodes that can reach 'e.To' to the slice
 	}
-	fmt.Println("EDGES:")
-	for _, e := range g.Edges {
-		fmt.Printf("  %s -> %s\n", e.From, e.To)
-	}
 
 	return forward, reverse
 }
+
+
+// Calculates the degree of each node in the graph (number of incoming + outgoing edges).
 func findDegree(g * Graph) map[string]int {
 
 	degree := make(map[string]int)
@@ -54,8 +60,20 @@ func findDegree(g * Graph) map[string]int {
 	return degree
 }
 
-func findComponents(g *Graph) map[string]string {
-	forward, reverse := BuildAdjacency(g)
+func findOrphanNodes(g *Graph, degree map[string]int) []string {
+	orphaned := []string{}
+	for _, n := range g.Nodes {
+		if degree[n.ID] == 0 {
+			orphaned = append(orphaned, n.ID)
+		}
+	}
+	return orphaned
+}
+
+
+
+
+func findComponents(g *Graph, forward, reverse map[string][]string) map[string]string {
 
 	component := make(map[string]string)
 	visited := make(map[string]bool) // Keeps track of visited nodes and prevents infinite recursion
@@ -91,6 +109,15 @@ func findComponents(g *Graph) map[string]string {
 	return component
 }
 
+func nodesPerComponent(componentMap map[string]string) map[string]int {
+	counts := make(map[string]int)
+	for _, compID := range componentMap {
+		counts[compID]++
+	}
+	return counts
+}
+
+
 // Given a connected component (set of nodes), computes depth of each node and wether it's part of a cycle.
 func analyzeComponent(nodes []string, forward map[string][]string, reverse map[string][]string,
 ) map[string]TraversalData {
@@ -120,10 +147,15 @@ func analyzeComponent(nodes []string, forward map[string][]string, reverse map[s
 
 		for _, next := range forward[cur] {
 			indegree[next]--
+			// Update child depth on every edge traversal, taking the maximum
+			// across all parents seen so far. This makes diamond-dependency
+			// depth correct regardless of BFS processing order.
+			if newDepth := data[cur].Depth + 1; newDepth > data[next].Depth {
+				td := data[next]
+				td.Depth = newDepth
+				data[next] = td
+			}
 			if indegree[next] == 0 {
-				data[next] = TraversalData{
-					Depth: data[cur].Depth + 1,
-				}
 				queue = append(queue, next)
 			}
 		}
@@ -143,10 +175,29 @@ func analyzeComponent(nodes []string, forward map[string][]string, reverse map[s
 	return data
 }
 
+
+
+func findRoots(g *Graph, reverse map[string][]string, componentMap map[string]string) map[string][]string {
+
+	roots := make(map[string][]string)
+
+	for _, n := range g.Nodes {
+		if len(reverse[n.ID]) == 0 {
+			comp := componentMap[n.ID]
+			roots[comp] = append(roots[comp], n.ID)
+		}
+	}
+
+	return roots
+}
+
 func AnalyzeGraph(g *Graph) *GraphAnalysis {
 	forward, reverse := BuildAdjacency(g)
-	componentMap := findComponents(g)
+	componentMap := findComponents(g, forward, reverse)
 	degree := findDegree(g)
+	orphanNodes := findOrphanNodes(g, degree)
+	roots := findRoots(g, reverse, componentMap)
+	npc := nodesPerComponent(componentMap)
 
 	// group nodes by component
 	components := make(map[string][]string)
@@ -157,16 +208,36 @@ func AnalyzeGraph(g *Graph) *GraphAnalysis {
 	result := &GraphAnalysis{
 		TraversalData: make(map[string]TraversalData),
 		Degree:        degree,
+		OrphanNodes:   orphanNodes,
+		Roots:         roots,
+		TotalNodes:    len(g.Nodes),
+		Components:	   components,
+		NodesPerComponent: npc,
+		MaxDepth:	   make(map[string]int),
+		Parents:       reverse, 
 	}
 
 	// Analyze each component separately
 	for compID, nodes := range components {
+
 		compData := analyzeComponent(nodes, forward, reverse)
+
+		localMax := 0
+
 		for nodeID, td := range compData {
+
 			td.ComponentID = compID
 			result.TraversalData[nodeID] = td
+
+			if td.Depth > localMax {
+				localMax = td.Depth
+			}
 		}
+
+		result.MaxDepth[compID] = localMax
 	}
+
+
 
 	return result
 }
