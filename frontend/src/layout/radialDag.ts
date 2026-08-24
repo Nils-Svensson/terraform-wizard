@@ -1,4 +1,4 @@
-import type { LayoutNode, LayoutResult, LayoutFn } from "./types";
+import type { LayoutResult, LayoutFn } from "./types";
 
 // Circular node diameter in radial view (CompactCircularNode is 169–338px)
 const NODE_DIAMETER  = 244;
@@ -14,7 +14,7 @@ const ORPHAN_R0   = 138;  // radius of first orphan ring (must be > NODE_DIAMETE
 const ORPHAN_STEP = 250;  // radial gap between orphan rings (must be >= NODE_DIAMETER)
 
 export const layoutRadial: LayoutFn = (
-  nodes,
+  _nodes,
   { traversalData, orphanNodes, components, parents },
   { width, height }
 ): LayoutResult => {
