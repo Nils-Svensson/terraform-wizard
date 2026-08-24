@@ -27,7 +27,7 @@
     RUN rm /etc/nginx/conf.d/default.conf
         
     # Copy template, not final config
-    COPY frontend/nginx.conf.template /etc/nginx/templates/nginx.conf.template
+    COPY frontend/nginx.conf.template /etc/nginx/nginx.conf.template
         
     # Copy built assets
     COPY --from=builder /app/dist /usr/share/nginx/html
@@ -35,7 +35,7 @@
     EXPOSE 8080
         
     CMD ["/bin/sh", "-c", "envsubst '${PROXY_API_URL}' \
-         < /etc/nginx/templates/nginx.conf.template \
+         < /etc/nginx/nginx.conf.template \
         > /etc/nginx/conf.d/default.conf \
         && nginx -g 'daemon off;'"]
 

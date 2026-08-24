@@ -21,8 +21,8 @@ server {
     # ---- POST /api/upload ----
     location = /api/upload {
         if ($is_bot)  { return 403; }
+        if ($request_method != POST) { return 405; }
         limit_req zone=api burst=5 nodelay;
-        limit_except POST { return 405; }
         client_max_body_size 20m;
 
         proxy_pass         ${PROXY_API_URL}/upload;
@@ -37,8 +37,8 @@ server {
     # ---- POST /api/clone ----
     location = /api/clone {
         if ($is_bot)  { return 403; }
+        if ($request_method != POST) { return 405; }
         limit_req zone=api burst=3 nodelay;
-        limit_except POST { return 405; }
         client_max_body_size 1k;
 
         proxy_pass         ${PROXY_API_URL}/clone;
@@ -53,8 +53,8 @@ server {
     # ---- GET /api/graph ----
     location = /api/graph {
         if ($is_bot)  { return 403; }
+        if ($request_method != GET) { return 405; }
         limit_req zone=api burst=10 nodelay;
-        limit_except GET { return 405; }
 
         proxy_pass         ${PROXY_API_URL}/graph;
         proxy_ssl_server_name on;
@@ -67,7 +67,7 @@ server {
 
     # ---- GET /api/healthz ----
     location = /api/healthz {
-        limit_except GET { return 405; }
+        if ($request_method != GET) { return 405; }
 
         proxy_pass         ${PROXY_API_URL}/healthz;
         proxy_ssl_server_name on;
