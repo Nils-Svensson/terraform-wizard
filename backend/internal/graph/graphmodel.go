@@ -1,8 +1,41 @@
 package graph
 
 import (
+	"strings"
+
 	"github.com/Nils-Svensson/terraform-wizard/backend/pkg/model"
 )
+
+// an attribute whose name contains any of these strings has its value replaced with "[redacted]".
+var sensitiveAttrSuffixes = []string{
+	"password", "passwd", "secret", "token", "api_key", "apikey",
+	"access_key", "secret_key", "private_key", "client_secret",
+	"auth_token", "certificate", "cert_pem", "private_pem",
+	"credential", "credentials",
+}
+
+func redactSensitiveAttrs(attrs map[string]string) map[string]string {
+	if len(attrs) == 0 {
+		return attrs
+	}
+	out := make(map[string]string, len(attrs))
+	for k, v := range attrs {
+		lower := strings.ToLower(k)
+		sensitive := false
+		for _, s := range sensitiveAttrSuffixes {
+			if strings.Contains(lower, s) {
+				sensitive = true
+				break
+			}
+		}
+		if sensitive {
+			out[k] = "[redacted]"
+		} else {
+			out[k] = v
+		}
+	}
+	return out
+}
 
 type Node struct {
 	ID       string                  `json:"id"`
@@ -57,7 +90,7 @@ func (g *Graph) AddNode(r *model.Resource) {
 		Name:            r.Name,
 		Provider:        r.Provider,
 		DisplayName:     r.DisplayName,
-		Attr:            r.Attributes,
+		Attr:            redactSensitiveAttrs(r.Attributes),
 		OccurrenceCount: 1,
 		InstanceCount:   r.DeclaredCount,
 		ForEach:         r.ForEach,

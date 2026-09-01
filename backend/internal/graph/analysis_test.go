@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/graph"
+	"github.com/Nils-Svensson/terraform-wizard/backend/pkg/model"
 )
 
 // makeGraph builds a Graph from node IDs and directed edges.
@@ -176,5 +177,64 @@ func TestMaxDepthPerComponent(t *testing.T) {
 	compID := a.TraversalData["A"].ComponentID
 	if got := a.MaxDepth[compID]; got != 4 {
 		t.Fatalf("MaxDepth want 4 got %d", got)
+	}
+}
+
+// TestSensitiveAttrRedaction verifies that AddNode redacts known-sensitive
+// attribute values while leaving non-sensitive attributes unchanged.
+func TestSensitiveAttrRedaction(t *testing.T) {
+	attrs := map[string]string{
+		// sensitive — exact matches
+		"password":      "hunter2",
+		"token":         "ghp_supersecret",
+		"api_key":       "sk-abc123",
+		// sensitive — compounds containing a sensitive substring
+		"db_password":      "prod-db-pass",
+		"secret_access_key": "AKIASECRET",
+		"client_secret":    "cs-xyz",
+		"DB_PASSWORD":      "case-insensitive-check", // uppercase key
+		// non-sensitive — must pass through unchanged
+		"region":      "us-central1",
+		"environment": "production",
+		"name":        "my-instance",
+	}
+
+	g := graph.NewGraph()
+	g.AddNode(&model.Resource{
+		ID:         "aws_db_instance.main",
+		Type:       "aws_db_instance",
+		Name:       "main",
+		Provider:   "aws",
+		Attributes: attrs,
+	})
+
+	if len(g.Nodes) != 1 {
+		t.Fatalf("expected 1 node, got %d", len(g.Nodes))
+	}
+	got := g.Nodes[0].Attr
+
+	sensitiveKeys := []string{
+		"password", "token", "api_key",
+		"db_password", "secret_access_key", "client_secret", "DB_PASSWORD",
+	}
+	for _, k := range sensitiveKeys {
+		if v, ok := got[k]; !ok {
+			t.Errorf("key %q missing from Attr", k)
+		} else if v != "[redacted]" {
+			t.Errorf("key %q: want \"[redacted]\", got %q", k, v)
+		}
+	}
+
+	safeKeys := map[string]string{
+		"region":      "us-central1",
+		"environment": "production",
+		"name":        "my-instance",
+	}
+	for k, want := range safeKeys {
+		if v, ok := got[k]; !ok {
+			t.Errorf("key %q missing from Attr", k)
+		} else if v != want {
+			t.Errorf("key %q: want %q, got %q", k, want, v)
+		}
 	}
 }

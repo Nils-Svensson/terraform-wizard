@@ -39,10 +39,10 @@ export function Navbar({
       {/* ── Left: logo · layout · filter · active chips ── */}
       <div className="flex items-center gap-3 min-w-0">
 
-        <div className="flex items-center gap-2 mr-2 shrink-0">
+        <a href="https://tfwizard.com" className="flex items-center gap-2 mr-2 shrink-0 hover:opacity-75 transition-opacity">
           <div className="w-6 h-6 rounded bg-purple-600 flex items-center justify-center text-white text-xs font-bold">T</div>
           <span className="font-semibold text-sm tracking-tight">tfwizard</span>
-        </div>
+        </a>
 
         <Select value={layoutType} onValueChange={v => onChangeLayout(v as LayoutType)}>
           <SelectTrigger className="w-28 h-8 text-xs bg-background/50 border-purple-800/30 hover:border-purple-600/50 shrink-0">

@@ -19,6 +19,14 @@ import (
 	"github.com/Nils-Svensson/terraform-wizard/backend/internal/storage"
 )
 
+type repoNotFoundError struct{ msg string }
+
+func (e *repoNotFoundError) Error() string { return e.msg }
+
+type repoAccessError struct{ msg string }
+
+func (e *repoAccessError) Error() string { return e.msg }
+
 type CloneHandler struct {
 	ingest  *ingest.Service
 	storage *storage.Storage
@@ -60,7 +68,14 @@ func (h *CloneHandler) CloneRepo(w http.ResponseWriter, r *http.Request) {
 
 	files, err := downloadTarball(ctx, tarballURL, req.Token)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to fetch repository: %s", err.Error()), http.StatusBadGateway)
+		switch err.(type) {
+		case *repoNotFoundError:
+			http.Error(w, fmt.Sprintf("failed to fetch repository: %s", err.Error()), http.StatusNotFound)
+		case *repoAccessError:
+			http.Error(w, fmt.Sprintf("failed to fetch repository: %s", err.Error()), http.StatusForbidden)
+		default:
+			http.Error(w, fmt.Sprintf("failed to fetch repository: %s", err.Error()), http.StatusBadGateway)
+		}
 		return
 	}
 	if len(files) == 0 {
@@ -161,10 +176,10 @@ func downloadTarball(ctx context.Context, tarballURL, token string) (map[string]
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("repository or branch not found")
+		return nil, &repoNotFoundError{"repository or branch not found"}
 	}
 	if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized {
-		return nil, fmt.Errorf("access denied — provide a GitHub token for private repos or if you hit rate limits")
+		return nil, &repoAccessError{"access denied — provide a GitHub token for private repos or if you hit rate limits"}
 	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("GitHub returned %d", resp.StatusCode)
